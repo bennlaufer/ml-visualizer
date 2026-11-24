@@ -1,0 +1,1137 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Realtor Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  :root{
+    --bg:#fbf6ee; --card:#ffffff; --ink:#1e2433; --soft:#5b6476; --faint:#9aa3b2; --rule:#ebe4d8;
+    --line:#4f46e5; --line-soft:#e0e7ff; --real:#1e2433; --hi:#e11d48; --hi-soft:#ffe4e9;
+    --lo:#d97706; --lo-soft:#fff1d6; --best:#15803d; --best-soft:#dcfce7; --bot:#0d9488; --bot-soft:#ccfbf1;
+    --accent:#f97316;
+  }
+  html,body{background:var(--bg); color:var(--ink); font-family:'Nunito',system-ui,sans-serif;}
+  body{overflow-x:hidden;}
+  h1,h2,h3,.disp{font-family:'Fredoka','Nunito',sans-serif;}
+  .card-w{background:var(--card); border:1px solid var(--rule); border-radius:18px; box-shadow:0 1px 0 rgba(30,36,51,.04),0 6px 20px -12px rgba(30,36,51,.18);}
+  /* progress */
+  .prog{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px;}
+  .pstep{display:flex; flex-direction:column; gap:5px; align-items:flex-start; background:none; border:0; padding:0; text-align:left; cursor:pointer; color:var(--faint); font-size:12px; font-weight:700; min-width:0;}
+  .pstep:disabled{cursor:not-allowed;}
+  .pbar{height:6px; width:100%; border-radius:99px; background:#e7dfd1; overflow:hidden;}
+  .pbar i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .4s;}
+  .pstep.done .pbar i{width:100%;}
+  .pstep.cur .pbar i{width:100%; background:var(--line);}
+  .pstep.done{color:var(--soft);} .pstep.cur{color:var(--line);}
+  .plabel{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  /* mentor */
+  .mentor{display:flex; gap:12px; align-items:flex-start;}
+  .avatar{flex:0 0 auto; width:54px; height:54px;}
+  .bubble{position:relative; background:var(--card); border:1px solid var(--rule); border-radius:16px; padding:10px 14px; font-size:15.5px; line-height:1.45; font-weight:600; min-height:54px; display:flex; align-items:center; flex:1; box-shadow:0 6px 18px -14px rgba(30,36,51,.3);}
+  .bubble::before{content:""; position:absolute; left:-8px; top:18px; width:14px; height:14px; background:var(--card); border-left:1px solid var(--rule); border-bottom:1px solid var(--rule); transform:rotate(45deg);}
+  .bubble.pop{animation:pop .35s ease;}
+  .bubble.bot{border-color:#99e6dc; background:#f2fdfb;} .bubble.bot::before{background:#f2fdfb; border-color:#99e6dc;}
+  @keyframes pop{0%{transform:scale(.97); opacity:.4} 100%{transform:scale(1); opacity:1}}
+  .who{font-family:'Fredoka'; font-size:12px; color:var(--soft); font-weight:600; margin-bottom:2px; display:block;}
+  /* chart */
+  #chart{width:100%; display:block; user-select:none; -webkit-user-select:none;}
+  #chart text{font-family:'Nunito',sans-serif;}
+  .grab{cursor:grab;} .grab:active{cursor:grabbing;}
+  .grow{transform-box:fill-box; transform-origin:0 0; animation:grow .45s cubic-bezier(.3,1.4,.6,1);}
+  @keyframes grow{from{transform:scale(0)} to{transform:scale(1)}}
+  .fadein{animation:fadein .5s ease;}
+  @keyframes fadein{from{opacity:0} to{opacity:1}}
+  .sw{display:inline-block; width:18px; height:4px; border-radius:2px;}
+  .dot{display:inline-block; width:10px; height:10px; border-radius:50%;}
+  /* house cards */
+  .cards{display:flex; gap:10px; overflow-x:auto; padding:2px 2px 8px; scroll-snap-type:x mandatory;}
+  .hcard{flex:0 0 158px; scroll-snap-align:start; background:var(--card); border:1px solid var(--rule); border-radius:16px; padding:10px 12px 12px; display:flex; flex-direction:column; gap:4px; cursor:default; transition:transform .15s, box-shadow .15s, border-color .15s;}
+  .hcard.tap{cursor:pointer;}
+  .hcard.tap:hover{transform:translateY(-2px); border-color:#c7c2ff; box-shadow:0 8px 20px -14px rgba(79,70,229,.6);}
+  @media (min-width:1024px){ .cards{display:grid; grid-template-columns:repeat(5,1fr); overflow:visible;} .hcard{flex:auto;} }
+  .hsvg{width:100%; height:76px; display:block;}
+  .hsize{font-family:'Fredoka'; font-weight:600; font-size:15px;}
+  .hrow{display:flex; justify-content:space-between; align-items:baseline; font-size:13px; color:var(--soft); font-weight:700;}
+  .hrow b{font-size:16px; color:var(--ink); font-weight:800;}
+  .hrow b.g{color:var(--line);} .hrow b.r{color:var(--real);} .hrow b.bt{color:var(--bot);} .hrow b.bs{color:var(--best);}
+  .miss{font-size:12.5px; font-weight:800; border-radius:10px; padding:4px 8px; margin-top:2px; line-height:1.35;}
+  .miss.hi{background:var(--hi-soft); color:#9f1239;} .miss.lo{background:var(--lo-soft); color:#92400e;} .miss.ok{background:var(--best-soft); color:#166534;}
+  .miss.sq{background:#fff7ed; color:#9a3412; border:1px dashed #fdba74;}
+  .cbtn{margin-top:4px; font-size:12.5px; font-weight:800; border-radius:10px; padding:6px 8px; border:1.5px dashed #a5b4fc; background:#eef2ff; color:var(--line); cursor:pointer; width:100%;}
+  .cbtn:hover{background:#e0e7ff;}
+  .sold{transform-box:fill-box; transform-origin:50% 100%;}
+  .sold.drop{animation:drop .7s cubic-bezier(.3,1.6,.5,1);}
+  @keyframes drop{0%{transform:translateY(-30px) rotate(-12deg); opacity:0} 60%{opacity:1} 100%{transform:none}}
+  /* panel */
+  .ptitle{font-family:'Fredoka'; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);}
+  .phead{font-family:'Fredoka'; font-size:24px; font-weight:600; line-height:1.15;}
+  .task{font-size:14.5px; color:var(--soft); font-weight:600;}
+  .big{font-family:'Fredoka'; font-weight:600; font-size:34px; line-height:1;}
+  .chip{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; padding:4px 10px; border-radius:99px; background:#f3efe7; color:var(--soft);}
+  .choice{border:2px solid var(--rule); background:#fff; border-radius:14px; padding:9px 10px; font-weight:800; font-size:14px; cursor:pointer; transition:all .15s; text-align:center; line-height:1.25;}
+  .choice:hover:not(:disabled){border-color:#a5b4fc;} .choice:disabled{cursor:default;}
+  .choice.right{border-color:var(--best); background:var(--best-soft); color:#166534;}
+  .choice.wrong{border-color:var(--hi); background:var(--hi-soft); color:#9f1239; animation:shake .35s;}
+  @keyframes shake{25%{transform:translateX(-4px)} 75%{transform:translateX(4px)}}
+  .nudge{border:2px solid var(--rule); background:#fff; border-radius:14px; padding:8px 6px; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; position:relative; transition:all .15s;}
+  .nudge:hover:not(:disabled){border-color:var(--line); color:var(--line);}
+  .nudge:disabled{opacity:.4; cursor:not-allowed;}
+  .nudge.hint{border-color:var(--best); background:var(--best-soft); color:#166534;}
+  .nudge.hint::after{content:"clue says"; position:absolute; top:-9px; right:8px; font-size:10px; background:var(--best); color:#fff; padding:1px 6px; border-radius:99px; font-weight:800;}
+  .meter{height:12px; border-radius:99px; background:#f1ece3; overflow:hidden;}
+  .meter i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#fb923c,#e11d48); transition:width .35s;}
+  .navrow{display:flex; gap:8px; align-items:center; justify-content:space-between; border-top:1px solid var(--rule); padding-top:12px; margin-top:auto;}
+  .hintline{font-size:12.5px; color:var(--faint); font-weight:700; text-align:center; flex:1;}
+  .btn-main{background:var(--line); color:#fff; border:0;}
+  .btn-main:hover{background:#4338ca;}
+  .btn-main:disabled,.btn-main[disabled]{background:#e7e2d9 !important; color:#a39a8b !important; border:0;}
+  input[type=range]{accent-color:var(--line);}
+  .preset{font-size:12.5px; font-weight:800; padding:6px 10px; border-radius:99px; border:1.5px solid var(--rule); background:#fff; cursor:pointer;}
+  .preset:hover{border-color:var(--bot);} .preset.on{background:var(--bot); color:#fff; border-color:var(--bot);}
+  .tag{border-radius:14px; padding:10px 12px; border:1px solid var(--rule);}
+  .recap li{display:flex; gap:10px; align-items:flex-start; font-size:14px; font-weight:600; line-height:1.4;}
+  .recap .n{flex:0 0 22px; height:22px; border-radius:50%; background:var(--line-soft); color:var(--line); font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center; margin-top:1px;}
+  .tabnum{font-variant-numeric:tabular-nums;}
+  .fade-in{animation:fadein .4s ease both;}
+  #flashStage{display:none;}
+  body.flashmode #flashStage{display:block;}
+  body.flashmode #chartCard, body.flashmode #panelWrap, body.flashmode #cardsSec{display:none;}
+  body.flashmode #mainGrid{grid-template-columns:minmax(0,1fr);}
+  body.nomentor #mentorWrap{display:none;}
+  body.wide #panelWrap{display:none;}
+  body.wide #mainGrid{grid-template-columns:minmax(0,1fr);}
+  .c1bar{display:none;}
+  #cardsSec{grid-column:1/-1; order:2; min-width:0;}
+  @media (min-width:1024px){
+    body.wide #mainGrid{grid-template-columns:240px minmax(0,1fr);}
+    body.wide #cardsSec{grid-column:auto; order:-1;}
+    body.wide .cardshead{flex-direction:column; gap:2px;}
+    body.wide .cards{grid-template-columns:1fr; gap:8px; padding:0;}
+    body.wide .hcard{display:grid; grid-template-columns:78px minmax(0,1fr); column-gap:10px; row-gap:1px; align-items:center; padding:8px 10px;}
+    body.wide .hcard .hsvg{grid-row:1/span 3; width:78px; height:56px;}
+    body.wide .hcard>:not(.hsvg){grid-column:2;}
+    body.wide .hcard .miss{grid-column:1/-1; margin-top:4px;}
+  }
+  .hcard.cur{border-color:var(--line); box-shadow:0 0 0 3px #e0e7ff;}
+  .ansbox{display:inline-flex; align-items:center; gap:2px; border:2px solid var(--rule); border-radius:12px; padding:5px 10px; background:#fff; font-weight:800; font-size:16px; color:var(--soft);}
+  .ansbox:focus-within{border-color:var(--line);}
+  .ansbox input{width:52px; border:0; outline:0; font:inherit; color:var(--ink); text-align:center; background:transparent;}
+  .ansbox.shake{animation:shake .3s;}
+  @keyframes blink{50%{opacity:.35}} .blink{animation:blink 1.2s ease-in-out infinite;}
+  body.c5 #cardsSec, body.c5 .navrow, body.c6 #cardsSec, body.c6 .navrow{display:none;}
+  body.sim #cardsSec, body.sim #panelWrap{display:none;} body.sim #mainGrid{grid-template-columns:minmax(0,1fr);}
+  body.sim .c1bar{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; border-top:1px solid var(--rule); margin-top:8px; padding-top:12px;}
+  body.replay #c1Bar{min-height:112px; align-items:flex-start;}
+  #eqBar{display:none;} body.showeq #eqBar{display:block;}
+  body.wide .hcard.n8card{display:flex; flex-direction:column; align-items:stretch; padding:12px 14px;} body.wide .n8card .hsvg, .n8card .hsvg{width:100%; height:130px; grid-row:auto;} body.wide .n8card>*{grid-column:auto;} .n8card input[type=range]{accent-color:var(--line); margin:4px 0 6px;}
+  .xslot{display:inline-block; min-width:1.2em; text-align:center; border-radius:6px; padding:0 3px; transition:background .3s;} .xslot.working{color:var(--faint); font-size:.85em;} .xslot.popnum{animation:popv .35s cubic-bezier(.3,1.5,.6,1); background:#eef2ff;}
+  .storyico{flex:none; width:52px;} .storyico .hsvg{height:38px;}
+  .storyend{display:flex; gap:10px; align-items:center; flex-wrap:wrap; border-radius:12px; padding:8px 12px; background:#f0fdf4; border:1px solid #bbf7d0;}
+  .recapgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:6px 16px; font-size:13.5px; font-weight:700; color:var(--soft);}
+  .recapgrid div{display:flex; gap:8px; align-items:flex-start;} .recapgrid .n{flex:none; width:20px; height:20px; border-radius:50%; background:#eef2ff; color:var(--line); font-size:11.5px; font-weight:800; display:grid; place-items:center;}
+  @media (max-width:640px){ #c1Bar>*{flex-basis:100%;} }
+  .eqstrip{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 16px; padding:2px 4px 10px; margin-bottom:4px; border-bottom:1px dashed var(--rule);}
+  .eqright{display:flex; flex-direction:column; align-items:flex-end; gap:2px;}
+  .eqline{font-size:24px; font-weight:600; line-height:1.15; white-space:nowrap; word-spacing:2px;}
+  .eqcap{font-size:11px; font-weight:800; color:var(--soft);}
+  .eqn{display:inline-flex; flex-direction:column; align-items:center; line-height:1;} .eqn small{font-family:'Nunito'; font-size:10.5px; font-weight:800; color:var(--soft); margin-top:3px;}
+  @media (min-width:1024px){ body.c6 #mainGrid{grid-template-columns:minmax(0,1fr) 380px;} }
+  .cm{color:#7c3aed;} .cb{color:#0891b2;}
+  .eqnum{display:inline-flex; flex-direction:column; align-items:center; line-height:1;} .eqnum small{font-family:'Nunito'; font-size:12px; font-weight:800; margin-top:6px; color:var(--soft);}
+  .slot{border-radius:10px; padding:0 4px; margin:0 -4px; transition:background .3s, box-shadow .3s;}
+  .slot.glow-m{background:#ede9fe; box-shadow:0 0 0 3px #c4b5fd;} .slot.glow-b{background:#cffafe; box-shadow:0 0 0 3px #67e8f9;}
+  .flynum{position:fixed; z-index:70; font-family:'Fredoka'; font-weight:600; pointer-events:none; transition:transform .8s cubic-bezier(.5,0,.2,1), opacity .2s ease .75s; transform-origin:0 0;}
+  .plugrow{display:flex; align-items:center; gap:8px; flex-wrap:nowrap; font-size:14.5px;} .plugrow .ans{width:76px; flex:none;}
+  .ans{width:84px; border:2px solid var(--rule); border-radius:10px; padding:5px 8px; font:inherit; text-align:center; background:#fff;}
+  .ans:focus{outline:0; border-color:var(--line);} .ans.ok{border-color:#16a34a; background:#dcfce7; color:#166534;} .ans.bad{border-color:var(--hi); animation:shake .3s;}
+  .dtab{table-layout:fixed; min-width:560px;} .dtab th,.dtab td{padding:9px 10px; text-align:right; border-bottom:1px dashed var(--rule); white-space:nowrap;} .dtab th{font-weight:800;} .dtab .tl{text-align:left;}
+  .dtab .avg td{border-top:2px solid var(--rule); border-bottom:0;} .dtab .hl{background:#faf9ff;}
+  .cell{opacity:0; display:inline-block; transition:opacity .25s;} .cell.on{opacity:1;}
+  .cell.formula{color:var(--faint); font-size:13px; font-weight:800;}
+  .cell.res{animation:popv .32s cubic-bezier(.3,1.5,.6,1);} @keyframes popv{0%{transform:scale(.5); opacity:0} 100%{transform:scale(1); opacity:1}}
+  .dtab tr.calcrow td{background:#f6f5ff;} .dtab tr.calcrow td.hl{background:#eeeaff;}
+  .dtab .src{box-shadow:inset 0 0 0 2px #a5b4fc; border-radius:8px; transition:box-shadow .2s;} .dtab td{transition:background .25s;}
+  .avgv{font-family:'Fredoka'; font-weight:600; font-size:24px; opacity:0; transition:opacity .4s;} .avgv.on{opacity:1;}
+  @media (min-width:1024px){ body.c5 #mainGrid{grid-template-columns:minmax(0,1fr) 240px;} body.c5 #panelWrap{padding:16px;} }
+  .mathbox{background:#f6f5ff; border:1px solid #e0e7ff; border-radius:12px; padding:10px 12px; font-weight:700; font-size:14px; line-height:1.6;}
+  #scoreStage{display:none;} body.nochart #scoreStage{display:block;} body.nochart #chartCard, body.nochart #panelWrap, body.nochart #cardsSec{display:none;}
+  body.nochart #mainGrid{grid-template-columns:minmax(0,1fr);}
+  .ohouse{display:grid; grid-template-columns:minmax(0,1fr); gap:20px 32px; align-items:center;} .ohouse>*{min-width:0;} @media (min-width:900px){ .ohouse{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);} }
+  .ohouse-pic{border-radius:20px; background:linear-gradient(180deg,#eef2ff,#fff7ed); padding:18px 18px 6px;} .ohouse-pic .hsvg{width:100%; height:auto; max-height:340px;}
+  .stat{display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:10px 0; border-bottom:1px dashed var(--rule); font-weight:700; color:var(--soft); font-size:15px;}
+  .stat b{font-size:24px; font-weight:800; white-space:nowrap;}
+  .hdots{display:flex; gap:6px;} .hdots i{width:26px; height:6px; border-radius:3px; background:#e7dccb;} .hdots i.on{background:var(--line);} .hdots i.cur{background:#a5b4fc;}
+  .sqrow{display:grid; grid-template-columns:48px 1fr auto auto; gap:6px 14px; align-items:center; padding:6px 0; border-bottom:1px dashed var(--rule); font-weight:700;}
+  .sqrow .hsvg{width:48px; height:34px;}
+  /* calculator */
+  body{padding-bottom:84px;} body.nocalc .calc-fab, body.nocalc .calc{display:none;}
+  .calc-fab{position:fixed; right:18px; bottom:18px; z-index:60; width:52px; height:52px; border-radius:16px; background:var(--line); color:#fff; display:grid; place-items:center; border:0; cursor:pointer; box-shadow:0 10px 24px -10px rgba(79,70,229,.8);}
+  .calc-fab:hover{filter:brightness(1.08);}
+  .calc{position:fixed; right:18px; bottom:80px; z-index:60; width:236px; background:#fff; border:1px solid var(--rule); border-radius:18px; padding:12px; box-shadow:0 20px 40px -18px rgba(30,36,51,.45); display:none;}
+  .calc.open{display:block;}
+  .calc-disp{background:#f6f5ff; border-radius:12px; padding:8px 12px; text-align:right; min-height:58px;}
+  .calc-expr{font-size:12.5px; color:var(--faint); font-weight:700; min-height:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .calc-val{font-size:24px; font-weight:800; color:var(--ink); overflow:hidden; text-overflow:ellipsis;}
+  .calc-keys{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px;}
+  .calc-keys button{height:40px; border-radius:10px; border:1px solid var(--rule); background:#fff; font-weight:800; font-size:16px; cursor:pointer; color:var(--ink);}
+  .calc-keys button:hover{background:#f6f5ff;} .calc-keys button.op{color:var(--line); background:#f6f5ff;} .calc-keys button.op:hover{background:#e0e7ff;} .calc-keys button.eq{background:var(--line); color:#fff; border-color:var(--line);} .calc-keys button.eq:hover{background:#4338ca;}
+  .calc-use{margin-top:8px; width:100%;}
+  .mchip{font-weight:800; font-size:14.5px; padding:6px 12px; border-radius:999px;}
+  .mchip.hi{background:var(--hi-soft); color:#9f1239;} .mchip.lo{background:var(--lo-soft); color:#92400e;}
+  .sstep{border-top:1px solid var(--rule); padding-top:14px; margin-top:16px;}
+  .slabel{font-size:12px; font-weight:800; color:var(--soft); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;}
+  .namebox{margin-top:16px; border-radius:16px; padding:16px 18px; background:#f6f5ff; border:1px solid #e0e7ff;}
+  body.wide .c1bar{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; border-top:1px solid var(--rule); margin-top:8px; padding-top:12px;}
+  .flash{border:1.5px solid var(--rule); border-radius:18px; padding:14px 16px; display:flex; flex-direction:column; gap:8px; background:linear-gradient(180deg,#f6f5ff,#fff 60%);}
+  .flash-house{width:62%; margin:0 auto;}
+  .flash-house .hsvg{width:100%; height:auto;}
+  .flash-price{font-size:34px; font-weight:800; color:var(--line); line-height:1.1;}
+  .popin{animation:popin .45s cubic-bezier(.3,1.6,.5,1) both;}
+  @keyframes popin{from{opacity:0; transform:scale(.4)} to{opacity:1; transform:none}}
+  .drawline{stroke-dasharray:1; stroke-dashoffset:1; animation:drawline .8s ease-out forwards;}
+  @keyframes drawline{to{stroke-dashoffset:0}}
+  .kbd-row{display:flex; align-items:center; gap:6px; justify-content:space-between;}
+  .mini{border:1.5px solid var(--rule); background:#fff; border-radius:10px; width:34px; height:30px; font-weight:800; cursor:pointer;}
+  .mini:hover{border-color:var(--line); color:var(--line);}
+</style>
+</head>
+<body>
+<div class="max-w-[1320px] mx-auto px-4 lg:px-6 py-4 lg:py-5 flex flex-col gap-4">
+
+  <!-- header -->
+  <header class="flex flex-col gap-3">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="10" fill="#4f46e5"/><path d="M8 17 L17 9 L26 17 V26 H8 Z" fill="#fff"/><rect x="14.5" y="19" width="5" height="7" fill="#4f46e5"/></svg>
+        <div class="min-w-0">
+          <h1 class="text-[20px] lg:text-[22px] font-semibold leading-tight">The Realtor Story</h1>
+          <div class="text-[13px] font-bold text-[color:var(--soft)] truncate">How a machine learns the best price line</div>
+        </div>
+      </div>
+      <div class="chip tabnum shrink-0" id="chapChip">Chapter 1 of 8</div>
+    </div>
+    <nav class="prog" id="prog" aria-label="Chapters"></nav>
+  </header>
+
+  <!-- main -->
+  <main id="mainGrid" class="grid gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] items-start">
+    <section class="flex flex-col gap-3 min-w-0">
+      <div class="mentor" id="mentorWrap">
+        <div class="avatar" id="mentorAvatar"></div>
+        <div class="bubble" id="bubble"><div><span class="who" id="whoName">Maya, your mentor</span><span id="say"></span></div></div>
+      </div>
+      <div id="flashStage"></div>
+      <div class="card-w p-3 lg:p-4" id="chartCard">
+        <div class="flex items-center justify-between gap-2 mb-1 flex-wrap">
+          <div class="chip" id="chartChip" style="display:none"></div>
+        </div>
+        <div id="eqBar"></div>
+        <svg id="chart" role="img" aria-label="Chart of house size versus price"></svg>
+        <div id="c1Bar" class="c1bar"></div>
+      </div>
+      <div class="card-w p-5 lg:p-6" id="scoreStage"></div>
+    </section>
+
+    <aside class="card-w p-4 lg:p-5 flex flex-col gap-4 min-w-0 lg:min-h-[520px]" id="panelWrap">
+      <div id="panel" class="flex flex-col gap-4"></div>
+      <div class="navrow">
+        <button class="btn btn-ghost btn-sm" id="backBtn">&larr; Back</button>
+        <div class="hintline" id="hintline"></div>
+        <button class="btn btn-sm btn-main" id="nextBtn">Next &rarr;</button>
+      </div>
+    </aside>
+  <section id="cardsSec">
+    <div class="cardshead flex items-baseline justify-between mb-2 gap-x-2 flex-wrap">
+      <h2 class="text-[17px] font-semibold" id="cardsTitle">The neighborhood</h2>
+      <div class="text-[12.5px] font-bold text-[color:var(--faint)]" id="cardsHint"></div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+  </main>
+
+</div>
+
+<button class="calc-fab" id="calcFab" aria-label="Open calculator" title="Calculator"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="3.5" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg></button>
+<div class="calc" id="calc" role="dialog" aria-label="Calculator">
+  <div class="flex items-center justify-between mb-2"><span class="text-[13px] font-extrabold text-[color:var(--soft)]">Calculator</span><button class="mini" id="calcClose" aria-label="Close calculator">&times;</button></div>
+  <div class="calc-disp"><div class="calc-expr" id="calcExpr"></div><div class="calc-val tabnum" id="calcVal">0</div></div>
+  <div class="calc-keys" id="calcKeys"></div>
+  <button class="btn btn-main btn-sm calc-use" id="calcUse" style="display:none">Use this answer</button>
+</div>
+<script>
+/* ---------- data + plain math ---------- */
+const HOUSES=[
+  {s:850, p:190, body:'#f6bd60', roof:'#c2703d'},
+  {s:1450,p:250, body:'#a7c4a0', roof:'#5b7f61'},
+  {s:2050,p:355, body:'#f5cac3', roof:'#b5656b'},
+  {s:2650,p:440, body:'#9ec5e8', roof:'#4a6f99'},
+  {s:3250,p:560, body:'#e9d8a6', roof:'#9b7b3a'}
+];
+const MID=2050;
+const u=s=>(s-MID)/1000;                       // how far from the middle house, in 1,000s of sq ft
+const guess=(L,s)=>L.lv+L.tl*u(s);             // lv: price at the middle house, tl: extra $k per 1,000 sq ft
+const fromTags=(a,b)=>({lv:(a+b)/2, tl:(b-a)/2.4});
+const misses=L=>HOUSES.map(h=>guess(L,h.s)-h.p);   // + means guessed too high
+const badness=L=>misses(L).reduce((t,e)=>t+e*e,0)/HOUSES.length; // mean squared error
+const mean=a=>a.reduce((t,v)=>t+v,0)/a.length;
+const clues=L=>{const e=misses(L); const avg=mean(e); const t=mean(e.map((v,i)=>v*u(HOUSES[i].s))); return {avg, t, gap:t/0.72*1.2};}
+const BEST=(()=>{const xs=HOUSES.map(h=>u(h.s)), ys=HOUSES.map(h=>h.p); const my=mean(ys); const tl=xs.reduce((t,x,i)=>t+x*(ys[i]-my),0)/xs.reduce((t,x)=>t+x*x,0); return {lv:my, tl};})();
+const BESTBAD=badness(BEST);
+const typical=L=>Math.sqrt(badness(L));
+const fmtK=v=>{const r=Math.round(v); return (r<0?'-$':'$')+Math.abs(r).toLocaleString('en-US')+'k';};
+const fmtN=v=>Math.round(v).toLocaleString('en-US');
+const ruleText=L=>{const a=guess(L,850), per=L.tl; return `${fmtK(a)} for the 850 sq ft house, ${per>=0?'plus':'minus'} ${fmtK(Math.abs(per))} for every extra 1,000 sq ft`;};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ---------- state ---------- */
+const CH=[
+  {t:'Your first pricing line', s:'First line'},
+  {t:'The sales come in', s:'Sales'},
+  {t:'How bad is my line?', s:'How bad?'},
+  {t:'How much to change?', s:'Change?'},
+  {t:'Fixing the line', s:'Fixing'},
+  {t:'Repeat the steps', s:'Repeat'},
+  {t:'Simulate', s:'Simulate'},
+  {t:'Price a new house', s:'New house'}
+];
+const FLASH=[0,4]; // flashcards: the smallest and the biggest house
+const freshC1=()=>({i:0,g:[null,null],val:[null,null],line:false,placed:0,gLanded:0,lineAnim:false,landed:-1,flying:false});
+const freshC3=(key='')=>({key,i:0,meas:[0,0,0,0,0],val:'',tries:0,hint:'',msg:'',just:-1});
+const freshF=(key='')=>({key, step:0, part:1, tab:false, calcBusy:false, q:[null,null], k:0, val:'', tries:0, hint:'', msg:'', pushed:false, busy:false, before:0, after:0});
+const freshIt=(key='')=>({key, L:null, step:1, phase:'', D:null, demoDone:false, tok:0, vis:{pred:[0,0,0,0,0],sold:[0,0,0,0,0],miss:[0,0,0,0,0],cPred:[0,0,0,0,0],cSold:[0,0,0,0,0],cMiss:[0,0,0,0,0]}, pop:null,
+  alpha:0.2, n:100, simL:null, steps:0, trail:[], hist:[], simBusy:false, simDone:false, diverged:false});
+const freshSc=()=>({stage:0,part:1,phase:'diff',i:0,val:'',tries:0,hint:'',msg:''});
+const freshP=(key='')=>({key,val:{m:'',b:''},done:{m:false,b:false},tries:{m:0,b:0},fb:{m:'',b:''},pushed:false,busy:false,msg:''});
+const fresh=()=>({it:freshIt(),p:freshP(),f:freshF(),sc:freshSc(),ch:0,maxCh:0,first:fromTags(270,410),c1:freshC1(),c2:{sold:false,justSold:false,flying:false,landed:-1},c3:freshC3(),revealed:[0,0,0,0,0],justRev:-1,squared:[0,0,0,0,0],justSq:-1,
+  fix:null,fixFrom:'',q1:null,q2:null,nudges:0,fixHist:[],ghost:null,robot:null,robotFrom:'',newSize:2300,gut:null,peek:false,n8:0,n8v:'',n8tries:0,n8hint:'',n8x:true,saidBig:false});
+let S=fresh();
+const $=id=>document.getElementById(id);
+
+/* ---------- avatars + houses ---------- */
+const MENTOR_SVG=`<svg viewBox="0 0 60 60" width="54" height="54" aria-hidden="true"><circle cx="30" cy="30" r="29" fill="#ffe8cc"/><path d="M12 30c0-14 8-21 18-21s18 7 18 21c0 3-1 5-2 6l-2-13c-4 2-14 2-22-4l-6 17c-2-1-4-3-4-6z" fill="#5a3825"/><circle cx="30" cy="31" r="13" fill="#f2c29b"/><path d="M17 27c3-7 9-10 15-9 4 1 8 4 10 8-6 0-14-2-18-6-2 3-4 5-7 7z" fill="#5a3825"/><circle cx="25" cy="31" r="1.8" fill="#1e2433"/><circle cx="35" cy="31" r="1.8" fill="#1e2433"/><path d="M25.5 36.5c2.5 2.5 6.5 2.5 9 0" stroke="#1e2433" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="21.5" cy="35" r="2" fill="#f59e9e" opacity=".6"/><circle cx="38.5" cy="35" r="2" fill="#f59e9e" opacity=".6"/><path d="M14 58c2-9 8-13 16-13s14 4 16 13" fill="#4f46e5"/><rect x="27" y="45" width="6" height="5" fill="#fff"/></svg>`;
+const ROBOT_SVG=`<svg viewBox="0 0 60 60" width="54" height="54" aria-hidden="true"><circle cx="30" cy="30" r="29" fill="#ccfbf1"/><line x1="30" y1="8" x2="30" y2="15" stroke="#0f766e" stroke-width="2.5"/><circle cx="30" cy="7" r="3" fill="#f97316"/><rect x="14" y="15" width="32" height="24" rx="8" fill="#14b8a6"/><rect x="18" y="20" width="24" height="13" rx="5" fill="#0f3d3a"/><circle cx="25" cy="26.5" r="3" fill="#5eead4"/><circle cx="35" cy="26.5" r="3" fill="#5eead4"/><rect x="11" y="23" width="3" height="8" rx="1.5" fill="#0f766e"/><rect x="46" y="23" width="3" height="8" rx="1.5" fill="#0f766e"/><rect x="18" y="41" width="24" height="14" rx="5" fill="#14b8a6"/><rect x="25" y="45" width="10" height="5" rx="2" fill="#0f3d3a"/></svg>`;
+function houseSVG(i,size,sign){
+  const h=HOUSES[i]||{body:'#c4b5fd',roof:'#6d28d9'}; const f=clamp((size-700)/2900,0,1);
+  const bw=34+f*40, bh=21+f*12, x0=46-bw/2, yb=62, peak=yb-bh-13-f*6;
+  let w=''; const k=2+Math.round(f*2);
+  for(let j=0;j<k;j++){const cx=x0+bw*(j+.5)/k; if(Math.abs(cx-46)<7) continue; w+=`<rect x="${cx-3.5}" y="${yb-bh+5}" width="7" height="6.5" rx="1" fill="#fff" stroke="#1e2433" stroke-opacity=".25"/>`;}
+  let sg='';
+  if(sign==='sale') sg=`<g><line x1="88" y1="62" x2="88" y2="38" stroke="#6b5b45" stroke-width="2"/><rect x="74" y="36" width="26" height="11" rx="2" fill="#4f46e5"/><text x="87" y="43.6" font-size="5" text-anchor="middle" fill="#fff" font-weight="800" font-family="Nunito">FOR SALE</text></g>`;
+  if(sign==='sold'||sign==='solddrop') sg=`<g class="sold ${sign==='solddrop'?'drop':''}"><line x1="88" y1="62" x2="88" y2="38" stroke="#6b5b45" stroke-width="2"/><rect x="77" y="35" width="22" height="12" rx="2" fill="#e11d48"/><text x="88" y="43.6" font-size="7" text-anchor="middle" fill="#fff" font-weight="800" font-family="Nunito">SOLD</text></g>`;
+  return `<svg class="hsvg" viewBox="0 0 100 70" aria-hidden="true"><ellipse cx="50" cy="63" rx="48" ry="3.5" fill="#e9e2d4"/>
+  <rect x="${x0}" y="${yb-bh}" width="${bw}" height="${bh}" fill="${h.body}" stroke="#1e2433" stroke-opacity=".2"/>
+  <polygon points="${x0-4},${yb-bh+1} 46,${peak} ${x0+bw+4},${yb-bh+1}" fill="${h.roof}"/>
+  <rect x="42.5" y="${yb-12}" width="7" height="12" rx="1" fill="#7c4a2d"/>${w}${sg}</svg>`;
+}
+
+/* ---------- chart ---------- */
+const svg=$('chart');
+let W=640,H=400; const M={l:54,r:14,t:14,b:42};
+const XD=[500,3600], YD=[0,700];
+const X=s=>M.l+(s-XD[0])/(XD[1]-XD[0])*(W-M.l-M.r);
+const Y=p=>M.t+(1-(p-YD[0])/(YD[1]-YD[0]))*(H-M.t-M.b);
+const invY=py=>YD[0]+(1-(py-M.t)/(H-M.t-M.b))*(YD[1]-YD[0]);
+const invX=px=>XD[0]+(px-M.l)/(W-M.l-M.r)*(XD[1]-XD[0]);
+function lineEl(L,color,w=3,extra=''){return `<line x1="${X(XD[0])}" y1="${Y(guess(L,XD[0]))}" x2="${X(XD[1])}" y2="${Y(guess(L,XD[1]))}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;}
+
+function chartOpts(){
+  const c=S.ch;
+  if(c===0) return {main:S.c1.line?S.first:null, mainColor:'var(--line)', c1:true};
+  if(c===1) return {main:S.first, mainColor:'var(--line)'};
+  if(c===2) return {main:S.first, mainColor:'var(--line)'};
+  if(c===3) return {main:S.fix, mainColor:'var(--line)', miss:[1,1,1,1,1], ghostL:(S.f.q.every(v=>v&&!v.startsWith('wrong')))?c5Target(S.fix):null};
+  if(c===4) return {main:S.fix, mainColor:'var(--line)', miss:[1,1,1,1,1], start:(S.p.busy||S.p.pushed)?S.first:null};
+  if(c===5) return {main:S.it.L||S.first, mainColor:'var(--line)', miss:S.it.vis.miss, start:S.first};
+  if(c===6) return {main:simL(), mainColor:'var(--line)', miss:[1,1,1,1,1], trail:S.it.trail, start:S.first};
+  return {main:BEST, mainColor:'var(--line)', newHouse:true};
+}
+function renderChart(){
+  const cw=svg.clientWidth||640; W=Math.max(300,cw); const wide=['wide','c5','c6','sim'].some(c=>document.body.classList.contains(c)); H=Math.round(wide?clamp(W*0.46,300,540):clamp(W*0.6,270,430));
+  const narrow=W<520; NARROW=narrow; M.l=narrow?44:54;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('height',H);
+  const o=chartOpts(); let s='';
+  s+=`<defs><clipPath id="plot"><rect x="${M.l}" y="${M.t}" width="${W-M.l-M.r}" height="${H-M.t-M.b}"/></clipPath></defs>`;
+  for(let p=0;p<=700;p+=100){ if(narrow&&p%200) continue; s+=`<line x1="${M.l}" x2="${W-M.r}" y1="${Y(p)}" y2="${Y(p)}" stroke="#efe9df"/><text x="${M.l-8}" y="${Y(p)+4}" font-size="11.5" text-anchor="end" fill="#9aa3b2" font-weight="700">$${p}k</text>`; }
+  for(let x=1000;x<=3500;x+=500){ if(narrow&&x%1000) continue; s+=`<line x1="${X(x)}" x2="${X(x)}" y1="${M.t}" y2="${H-M.b}" stroke="#f4efe6"/><text x="${X(x)}" y="${H-M.b+17}" font-size="11.5" text-anchor="middle" fill="#9aa3b2" font-weight="700">${x.toLocaleString('en-US')}</text>`; }
+  s+=`<text x="${(M.l+W-M.r)/2}" y="${H-6}" font-size="12" text-anchor="middle" fill="#5b6476" font-weight="800">House size (sq ft)</text>`;
+  s+=`<g clip-path="url(#plot)">`;
+  // squares
+  if(o.sq) HOUSES.forEach((h,i)=>{ if(!o.sq[i]) return; const g=guess(o.main,h.s), x=X(h.s), y1=Y(h.p), y2=Y(g); const side=Math.abs(y2-y1); if(side<1||(S.ch===5&&side>150)) return;
+    const hi=g>h.p; const col=hi?'var(--hi)':'var(--lo)'; const left=x+side>W-M.r; const rx=left?x-side:x; const ry=Math.min(y1,y2);
+    const e=g-h.p;
+    s+=`<rect class="${S.justSq===i&&S.ch===3?'grow':''}" style="${left?'transform-origin:100% 0':''}" x="${rx}" y="${ry}" width="${side}" height="${side}" fill="${col}" fill-opacity=".16" stroke="${col}" stroke-opacity=".55" stroke-width="1.5"/>`;
+    if(side>34 && S.ch===3) s+=`<text x="${rx+side/2}" y="${ry+side/2+4}" font-size="11" text-anchor="middle" fill="${hi?'#9f1239':'#92400e'}" font-weight="800">${fmtN(Math.round(Math.abs(e))**2)}</text>`;
+  });
+  if(o.trail) o.trail.slice(-25).forEach((L,j,arr)=>{ s+=lineEl(L,'var(--line)',2,`opacity="${0.06+0.3*(j+1)/arr.length}"`); });
+  if(o.start && S.ch>=4) s+=lineEl(o.start,'#9aa3b2',2.5,'stroke-dasharray="6 6"');
+  if(o.ghostL) s+=lineEl(o.ghostL,'#16a34a',3,'opacity=".55" stroke-dasharray="6 6" class="blink"');
+  if(o.main) s+=lineEl(o.main,o.mainColor,4,S.ch===0&&S.c1.lineAnim?'class="drawline" pathLength="1"':'');
+  // miss lines
+  if(o.miss) HOUSES.forEach((h,i)=>{ if(!o.miss[i]) return; const g=guess(o.main,h.s); const col=g>h.p?'var(--hi)':'var(--lo)';
+    s+=`<line x1="${X(h.s)}" x2="${X(h.s)}" y1="${Y(h.p)}" y2="${Y(g)}" stroke="${col}" stroke-width="3" class="${S.ch===5&&S.it.phase==='miss'?'fadein':''}"/>`;
+    if(S.ch<=6 && !(S.ch>=2&&NARROW) && Math.abs(Y(g)-Y(h.p))>18 && !(o.sq&&o.sq[i])){ const my=(Y(g)+Y(h.p))/2; s+=`<text x="${X(h.s)-7}" y="${my+4}" font-size="11.5" text-anchor="end" fill="${g>h.p?'#9f1239':'#92400e'}" font-weight="800">${fmtK(Math.abs(g-h.p))}</text>`; }
+  });
+  if(o.guessDots) HOUSES.forEach(h=>{ s+=`<circle cx="${X(h.s)}" cy="${Y(guess(o.main,h.s))}" r="5" fill="#fff" stroke="${o.mainColor}" stroke-width="2.5"/>`; });
+  if(o.real) HOUSES.forEach((h,i)=>{ if(!o.real[i]) return; s+=`<circle class="${S.ch===1&&S.justRev===i?'fadein':''}" cx="${X(h.s)}" cy="${Y(h.p)}" r="6.5" fill="var(--real)" stroke="#fff" stroke-width="2"/>`; });
+  if(o.pivot){ const x=X(MID), y=Y(guess(o.main,MID)); s+=`<circle cx="${x}" cy="${y}" r="9" fill="none" stroke="var(--line)" stroke-opacity=".35" stroke-width="2" stroke-dasharray="3 3"/>`; }
+  // new house marker
+  if(o.newHouse){ const x=X(S.newSize); s+=`<line x1="${x}" x2="${x}" y1="${M.t}" y2="${H-M.b}" stroke="#f97316" stroke-width="2" stroke-dasharray="5 5" opacity=".7"/>`; }
+  s+=`</g>`;
+  // ch1: each house drawn on the chart at its price (your two guesses, then the ones your line priced)
+  if(o.c1){ const C=S.c1;
+    const houseAt=(hi,p,label,kind,pop)=>{ const h=HOUSES[hi], x=X(h.s), y=Y(p);
+      const art=houseArt(hi,'sale',x,y-66);
+      const tag=kind==='guess'
+        ? `<rect x="${x-34}" y="${y-96}" width="68" height="24" rx="8" fill="var(--line)"/><text x="${x}" y="${y-79}" font-size="13.5" text-anchor="middle" fill="#fff" font-weight="800">${label}</text>`
+        : `<text x="${x}" y="${y-76}" font-size="13.5" text-anchor="middle" fill="var(--line)" font-weight="800">${label}</text>`;
+      return `<g class="${pop?'popin':''}" style="transform-origin:${x}px ${y}px">${kind==='guess'?'':`<line x1="${x}" x2="${x}" y1="${H-M.b}" y2="${y}" stroke="var(--line)" stroke-width="1.6" stroke-dasharray="4 4" opacity=".35"/>`}
+        ${art}<circle cx="${x}" cy="${y}" r="${kind==='guess'?6.5:5.5}" fill="${kind==='guess'?'#fff':'var(--line)'}" stroke="${kind==='guess'?'var(--line)':'#fff'}" stroke-width="${kind==='guess'?3:2}"/>${tag}</g>`; };
+    FLASH.forEach((hi,k)=>{ if(C.g[k]==null||k>=C.gLanded) return; s+=houseAt(hi,C.g[k],fmtK(C.g[k]),'guess',hi===C.landed); });
+    if(C.line) [1,2,3].slice(0,C.placed).forEach(hi=>{ s+=houseAt(hi,guess(S.first,HOUSES[hi].s),fmtK(guess(S.first,HOUSES[hi].s)),'line',hi===C.landed); });
+  }
+  // ch2: every house stays on the plot. Unsold: the whole house with a FOR SALE sign on your line.
+  // Sold: the house moves to its real price with a SOLD sign, and its spot on your line keeps just a FOR SALE sign.
+  if(S.ch===1||S.ch>=3&&S.ch<=6) HOUSES.forEach((h,i)=>{ const x=X(h.s), pred=Math.round(guess(S.ch===5?(S.it.L||S.first):S.ch===6?simL():S.ch>=3?S.fix:S.first,h.s)), yl=Y(pred); if(!isFinite(yl)||Math.abs(yl)>5000) return;
+    const V=S.ch===5?S.it.vis:null, PP=S.ch===5?S.it.pop:null; if(V&&!V.pred[i]) return;
+    if(S.ch===1&&!S.revealed[i]){
+      s+=`<g>${houseArt(i,'sale',x,yl-66)}<circle cx="${x}" cy="${yl}" r="5.5" fill="var(--line)" stroke="#fff" stroke-width="2"/>
+        <text x="${x}" y="${yl-76}" font-size="13.5" text-anchor="middle" fill="var(--line)" font-weight="800">${fmtK(pred)}</text></g>`;
+      return; }
+    // once sold, no house drawings: a FOR SALE sign right at your line, a SOLD sign on the real price.
+    // each sign sits on the side away from the miss bar between them.
+    const y=Y(h.p), below=h.p<pred;
+    if(S.ch===2&&!S.c3.meas[i]&&i===S.c3.i){ const my=(yl+y)/2;
+      s+=`<g class="blink"><line x1="${x}" x2="${x}" y1="${yl}" y2="${y}" stroke="#475569" stroke-width="2.5" stroke-dasharray="4 4"/><circle cx="${x-17}" cy="${my}" r="11" fill="#1e2433"/><text x="${x-17}" y="${my+5}" font-size="14" text-anchor="middle" fill="#fff" font-weight="800">?</text></g>`; }
+    const sold=!V||V.sold[i], up=sold?below:false;
+    s+=`<g class="${PP&&PP.t==='pred'&&PP.i===i?'popin':''}" style="transform-origin:${x}px ${yl}px">${signAt(x,yl,up,'FOR SALE','var(--line)',fmtK(pred),'var(--line)')}</g>`;
+    if(sold) s+=`<g class="${(S.ch===1&&i===S.c2.landed)||(PP&&PP.t==='sold'&&PP.i===i)?'popin':''}" style="transform-origin:${x}px ${y}px">${signAt(x,y,!below,'SOLD','#e11d48',fmtK(h.p),'var(--real)')}</g>`; });
+  if(S.ch===7){ const P8=n8Prices(), x=X(S.newSize), y=Y(P8.ans);
+    if(S.n8===1) s+=`<g class="blink"><circle cx="${x}" cy="${y}" r="7" fill="#fff" stroke="var(--line)" stroke-width="3"/><circle cx="${x+20}" cy="${y-20}" r="12" fill="#1e2433"/><text x="${x+20}" y="${y-15}" font-size="14" text-anchor="middle" fill="#fff" font-weight="800">?</text></g>`;
+    if(S.n8>=2) s+=`<g class="popin" style="transform-origin:${x}px ${y}px">${signAt(x,y,true,'FOR SALE','var(--line)',fmtK(P8.ans),'var(--line)')}</g>`; }
+  if(S.ch===5||S.ch===6){ const n=NARROW, lx=M.l+(n?6:12), ly=M.t+(n?4:8), fs=n?10.5:12, sw=n?16:24, gap=n?92:106;
+    s+=`<g><rect x="${lx}" y="${ly}" width="${n?178:232}" height="${n?24:28}" rx="8" fill="#fff" stroke="#ebe4d8"/>
+      <line x1="${lx+10}" x2="${lx+10+sw}" y1="${ly+(n?12:14)}" y2="${ly+(n?12:14)}" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/><text x="${lx+16+sw}" y="${ly+(n?16:18.5)}" font-size="${fs}" font-weight="800" fill="#5b6476">${S.ch===7?'Learned':'Line now'}</text>
+      <line x1="${lx+gap}" x2="${lx+gap+sw}" y1="${ly+(n?12:14)}" y2="${ly+(n?12:14)}" stroke="#9aa3b2" stroke-width="2.5" stroke-dasharray="5 5"/><text x="${lx+gap+sw+6}" y="${ly+(n?16:18.5)}" font-size="${fs}" font-weight="800" fill="#5b6476">Original line</text></g>`; }
+  if(S.ch===3&&S.f.part===1){ const F=S.f, D=c5Data(S.fix), ok=q=>F.q[q]&&!F.q[q].startsWith('wrong');
+    if(ok(0)&&Math.abs(D.g0)>=1){ const x=X(MID)-72; s+=arrowAt(x,Y(guess(S.fix,MID)),D.g0>0?-1:1,''); }
+    if(ok(1)&&Math.abs(D.g1)>=1){ [X(XD[0])+22,X(XD[1])-22].forEach(x=>{ const dd=-D.g1*u(invX(x)); s+=arrowAt(x,Y(guess(S.fix,invX(x))),dd>0?1:-1,''); }); }
+  }
+  svg.innerHTML=s;
+  svg.style.touchAction='auto';
+  svg.style.cursor=S.ch===3?'pointer':'default';
+}
+// A house drawing placed on the chart (96 x 67), with an optional sign.
+const houseArt=(i,sign,x,ay)=>houseSVG(i,HOUSES[i].s,sign).replace('<svg class="hsvg"',`<svg x="${x-48}" y="${ay}" width="96" height="67"`);
+// A small sign planted on a point: a short post with the board just above (up) or just below it.
+let NARROW=false;
+function signAt(x,y,up,word,color,label,labelColor){
+  const n=NARROW, bw=word==='SOLD'?(n?30:40):word==='YOUR GUESS'?(n?52:66):(n?42:54), bh=n?13:16, gap=7, top=up?y-gap-bh:y+gap;
+  const postA=up?top+bh:y, postB=up?y:top;
+  return `<g><line x1="${x}" x2="${x}" y1="${postA}" y2="${postB}" stroke="#6b5b45" stroke-width="2"/>
+    <rect x="${x-bw/2}" y="${top}" width="${bw}" height="${bh}" rx="3" fill="${color}"/><text x="${x}" y="${top+(n?9.5:11.5)}" font-size="${n?7:8.5}" text-anchor="middle" fill="#fff" font-weight="800" font-family="Nunito">${word}</text>
+    <circle cx="${x}" cy="${y}" r="5.5" fill="${color}" stroke="#fff" stroke-width="2"/>
+    ${n?'':`<text x="${x+bw/2+6}" y="${top+12}" font-size="12.5" fill="${labelColor}" font-weight="800" stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke">${label}</text>`}</g>`;
+}
+// pointer
+function ptData(e){const r=svg.getBoundingClientRect(); const px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height; return {s:invX(px), p:invY(py)};}
+svg.addEventListener('pointerdown',e=>{
+  const d=ptData(e);
+});
+
+/* ---------- mentor ---------- */
+function say(t,bot){ const b=$('bubble'); $('say').innerHTML=t; b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+  b.classList.toggle('bot',!!bot); $('whoName').textContent=bot?'Bolt, your assistant':'Maya, your mentor'; $('mentorAvatar').innerHTML=bot?ROBOT_SVG:MENTOR_SVG; }
+
+/* ---------- cards ---------- */
+function cardsFor(){
+  const c=S.ch;
+  if(c===7){ const P8=n8Prices();
+    return `<div class="hcard n8card"><div id="n8Pic">${houseSVG(-1,S.newSize,'sale')}</div>
+      <div class="hsize" id="n8Size">${S.newSize.toLocaleString('en-US')} sq ft</div>
+      <input type="range" min="700" max="3500" step="50" value="${S.newSize}" id="n8SizeR" aria-label="New house size" class="w-full" ${S.n8===1?'disabled':''}>
+      <div class="hrow"><span>The line says</span><b class="g tabnum" id="n8Best">${S.n8>=2?fmtK(P8.ans):'?'}</b></div></div>`; }
+  if(c===5){ const I=S.it, V=I.vis, L=I.cardL||I.L||S.first, q='<span style="color:var(--faint)">?</span>';
+    return HOUSES.map((h,i)=>{ const g=Math.round(guess(L,h.s)), e=g-h.p, ae=Math.abs(e), cls=ae<3?'ok':e>0?'hi':'lo';
+      const body=`<div class="hrow"><span>Line</span><b class="g tabnum" id="rLine${i}">${V.cPred[i]?fmtK(g):q}</b></div><div class="hrow"><span>Sold</span><b class="r tabnum" id="rSold${i}">${V.cSold[i]?fmtK(h.p):q}</b></div>`;
+      const foot=V.cMiss[i]?`<div class="miss ${cls}" id="rMiss${i}">${ae<3?'Spot on':`${fmtK(ae)} ${e>0?'too high':'too low'}`}</div>`:`<div class="miss" id="rMiss${i}" style="background:#f4efe6;color:var(--faint)">miss: ?</div>`;
+      return `<div class="hcard" data-i="${i}">${houseSVG(i,h.s,V.cSold[i]?'sold':'sale')}<div class="hsize">${h.s.toLocaleString('en-US')} sq ft</div>${body}${foot}</div>`; }).join(''); }
+  const L=c<=3?S.first:c===4?S.fix:c===6?simL():BEST;
+  return HOUSES.map((h,i)=>{
+    const g=guess(L,h.s), e=g-h.p, hi=e>0, ae=Math.abs(e), cls=ae<3?'ok':hi?'hi':'lo';
+    const k1=FLASH.indexOf(i), known1=c!==0||(k1>=0?S.c1.g[k1]!=null:(S.c1.line&&i<=S.c1.placed)), g1=c===0&&k1>=0?S.c1.g[k1]:g;
+    const word=ae<3?'spot on':hi?'too high':'too low';
+    const rev=c>=2||(c===1&&S.revealed[i]);
+    const sign=c===0?'sale':c===1?(!S.c2.sold?'sale':S.c2.justSold?'solddrop':'sold'):'sold';
+    const gl=c<=4?'Guess':c===6?'Line':'Learned'; const gc=c<=4||c===6?'g':'bs';
+    let body=`<div class="hrow"><span>${c===0&&k1<0&&known1?'Your line':gl}</span><b class="${gc} tabnum">${!known1?'<span style="color:var(--faint)">?</span>':g1<0?'below $0':g1>2000?'way off':fmtK(g1)}</b></div>`;
+    body+=`<div class="hrow"><span>Sold</span><b class="r tabnum">${rev?fmtK(h.p):c===0?'<span style="color:var(--faint);font-size:13px">not yet</span>':'?'}</b></div>`;
+    let foot='';
+    if(c===2){ foot=S.c3.meas[i]?`<div class="miss ${cls}">${fmtK(ae)} ${word}</div>`:''; }
+    else if(c===3){ foot=`<div class="miss ${cls}">${fmtK(ae)} ${word}</div>`+(S.squared[i]?`<div class="miss sq tabnum">${Math.round(ae)} × ${Math.round(ae)} = ${fmtN(Math.round(ae)*Math.round(ae))}</div>`:''); }
+    else if(c>=4){ foot=`<div class="miss ${cls}">${ae<3?'Spot on':`${fmtK(ae)} ${word}`}</div>`; }
+    const tap=false, cur=(c===2&&!S.c3.meas[i]&&i===S.c3.i)||(c===3&&!S.squared[i]&&i===S.sc.i);
+    return `<div class="hcard ${tap?'tap':''} ${cur?'cur':''}" data-i="${i}">${houseSVG(i,h.s,sign)}<div class="hsize">${h.s.toLocaleString('en-US')} sq ft</div>${body}${foot}</div>`;
+  }).join('');
+}
+$('cards').addEventListener('click',e=>{ const card=e.target.closest('.hcard'); if(!card) return; const i=+card.dataset.i;
+ });
+
+/* ---------- chapter actions ---------- */
+function reveal(i){ if(S.revealed[i]) return; S.revealed[i]=1; S.justRev=i; const h=HOUSES[i], g=guess(S.first,h.s), e=g-h.p;
+  const n=S.revealed.reduce((a,b)=>a+b,0);
+  if(n<5) say(`The ${h.s.toLocaleString('en-US')} sq ft house sold for ${fmtK(h.p)}. You guessed ${fmtK(g)}: ${Math.abs(e)<3?'nearly spot on!':`${fmtK(Math.abs(e))} too ${e>0?'high':'low'}.`} ${n===1?'The red or orange bar is your miss.':''}`);
+  else { const ms=misses(S.first); const hiN=ms.filter(v=>v>0).length; say(`All 5 sold! You were too high on ${hiN} and too low on ${5-hiN}. So how bad is your line, in one number?`); }
+  update(); S.justRev=-1; }
+function square(i){ if(S.squared[i]) return; S.squared[i]=1; S.justSq=i; const e=Math.abs(Math.round(misses(S.first)[i])); const n=S.squared.reduce((a,b)=>a+b,0);
+  if(n===1) say(`${e} × ${e} = ${fmtN(e*e)}. Squaring turns a miss into a square. Too high or too low, both count as bad.`);
+  else if(n<5){ if(!S.saidBig){S.saidBig=1; say(`Why square? A $40k miss is 4× a $10k miss, but its square is 16× bigger. Big misses count extra!`);} else say(`${e} × ${e} = ${fmtN(e*e)}. ${5-n} to go.`); }
+  else say(`Your badness score: <b>${fmtN(shelfTotal())}</b>. That's all the squares added up. Lower is better. Let's shrink it!`);
+  update(); S.justSq=-1; }
+function shelfTotal(){ return misses(S.first).reduce((t,e)=>{const r=Math.round(Math.abs(e)); return t+r*r;},0); }
+
+/* ---------- panels ---------- */
+const P={};
+P[0]={enter(){ const C=S.c1;
+    if(C.line&&C.placed>=3) say("Your line priced the other three houses. Every house in the neighborhood now has a price from your line. Hit Next to see what they really sold for.");
+    else if(C.line) say("Two points make a line, and this is your pricing line. <b>Now let's use it to predict the other houses.</b>");
+    else if(C.i>=2) say("Here are your two guesses on the chart. <b>Two points make a line...</b>");
+    else say("Hey, welcome to the neighborhood! Buyers want to know what two of these houses are worth. Let's start with the smallest one. <b>What do you think it sold for?</b>"); },
+  html:()=>{ const C=S.c1;
+    if(C.i<2) return ''; // the two flashcards live in the full-width flash stage
+    const guesses=`<div class="flex gap-2">${FLASH.map((hi,k)=>`<div class="tag flex-1 text-center"><div class="text-[12.5px] font-extrabold text-[color:var(--soft)]">${HOUSES[hi].s.toLocaleString('en-US')} sq ft</div><div class="text-[19px] font-extrabold" style="color:var(--line)">${fmtK(C.g[k])}</div></div>`).join('')}</div>`;
+    if(!C.line) return `<div><div class="ptitle">Chapter 1</div><div class="phead">Two points make a line</div></div>${guesses}
+      <p class="task">Plotting your two guesses and drawing a straight line through them...</p>`;
+    if(C.placed<3) return `<div><div class="ptitle">Chapter 1</div><div class="phead">Two points make a line</div></div>${guesses}
+      <p class="task">That's your <b>pricing line</b>. For any house: find its size along the bottom, go up to the line, and read off the price.</p>
+      <button class="btn btn-main w-full" id="predictNext" ${C.flying?'disabled':''}>${C.flying?'Predicting...':'Now predict the next houses'}</button>
+      ${C.flying?'':'<button class="btn btn-ghost btn-sm" id="redoGuess">Change my guesses</button>'}`;
+    return `<div><div class="ptitle">Chapter 1</div><div class="phead">Your first pricing line</div></div>
+      <p class="task">For any house: find its size along the bottom, go up to your line, read its price.</p>
+      <div class="tag" style="background:#f6f5ff;border-color:#e0e7ff"><div class="text-[12.5px] font-extrabold text-[color:var(--soft)] mb-1">YOUR RULE IN WORDS</div><div class="text-[15.5px] font-bold leading-snug" id="ruleWords"></div></div>
+      <button class="btn btn-ghost btn-sm" id="redoGuess">Change my guesses</button>`; },
+  wire(){ const C=S.c1;
+    if($('predictNext')&&!C.flying) $('predictNext').onclick=predictNext;
+    if($('redoGuess')) $('redoGuess').onclick=()=>{ const v=[...C.val]; S.c1=freshC1(); S.c1.val=v; S.maxCh=0; P[0].enter(); $('panel').innerHTML=P[0].html(); P[0].wire(); update(); renderProg(); }; },
+  upd(){ if($('ruleWords')) $('ruleWords').textContent=ruleText(S.first); },
+  done:()=>S.c1.line&&S.c1.placed>=3, hint:'Predict the other houses first'};
+
+P[1]={enter(){ if(S.revealed.every(v=>v)) say("All 5 sales are in. Each colored bar is how far off you were."); else say("The sales are coming in! <b>Tap a house</b> (or Next sale) to see what it really sold for."); },
+  html:()=>`<div><div class="ptitle">Chapter 2</div><div class="phead">The sales come in</div></div>
+  <p class="task">Your miss is how far off your guess was: your guess minus the real price.</p>
+  <button class="btn btn-main" id="nextSale">Next sale</button>
+  <div class="flex flex-col gap-1.5" id="saleLog"></div>`,
+  wire(){ if($('nextSale')) $('nextSale').onclick=()=>{const i=S.revealed.indexOf(0); if(i>=0) reveal(i);}; },
+  upd(){ const n=S.revealed.reduce((a,b)=>a+b,0); const b=$('nextSale'); if(!b||!$('saleLog')) return; b.disabled=n===5; b.textContent=n===5?'All 5 sold':`Next sale (${5-n} left)`;
+    $('saleLog').innerHTML=HOUSES.map((h,i)=>{ if(!S.revealed[i]) return ''; const g=guess(S.first,h.s), e=g-h.p; const cls=Math.abs(e)<3?'ok':e>0?'hi':'lo';
+      return `<div class="miss ${cls} tabnum" style="font-size:13.5px">${h.s.toLocaleString('en-US')} sq ft: ${fmtK(g)} − ${fmtK(h.p)} = ${fmtK(Math.abs(e))} ${Math.abs(e)<3?'spot on':e>0?'too high':'too low'}</div>`; }).join(''); },
+  done:()=>S.revealed.every(v=>v), hint:'Reveal all 5 sales'};
+
+P[2]={enter(){}, html:()=>'', wire(){}, upd(){}, done:()=>S.sc.stage>=3, hint:'Work out your score'};
+
+function renderScore(){
+  const T=S.sc, raw=misses(S.first), ms=raw.map(e=>Math.round(Math.abs(e))), sq=ms.map(m=>m*m), mse=sq.reduce((a,b)=>a+b,0)/5;
+  const allSq=S.squared.every(v=>v), done=S.squared.reduce((a,b)=>a+b,0), part=allSq?T.part:1;
+  const head=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">Chapter 3 · Part ${part} of 2</div><div class="phead">How bad is my line?</div></div>
+    ${part===1?`<div class="flex items-center gap-3"><span class="text-[13px] font-extrabold text-[color:var(--soft)]">${allSq?'All 5 houses':`House ${done+1} of 5`}</span><span class="hdots">${S.squared.map((v,i)=>`<i class="${v?'on':!allSq&&i===T.i?'cur':''}"></i>`).join('')}</span></div>`:''}</div>
+    <p class="task mt-2">${part===1?'Open up each house. Work out how far off your line is, then <b>square</b> it (multiply it by itself). Squaring makes too high and too low count the same, and makes big misses count extra.'
+      :'Now one number for the whole line: the <b>average</b> of the five squares.'}</p>`;
+  let h=head;
+  if(!allSq){ const i=T.i, H=HOUSES[i], m=ms[i], hi=raw[i]>0, g=Math.round(guess(S.first,H.s)), diff=T.phase==='diff';
+    h+=`<div class="ohouse mt-4">
+      <div class="ohouse-pic">${houseSVG(i,H.s,'sold')}</div>
+      <div>
+        <div class="disp text-[28px] font-semibold mb-1">${H.s.toLocaleString('en-US')} sq ft</div>
+        <div class="stat"><span>Your line said</span><b style="color:var(--line)">${fmtK(g)}</b></div>
+        <div class="stat"><span>It sold for</span><b style="color:var(--real)">${fmtK(H.p)}</b></div>
+        <div class="stat"><span>Off by</span>${diff?'<b style="color:var(--faint)">?</b>':`<b style="color:${hi?'var(--hi)':'var(--lo)'}">${fmtK(m)} <span class="text-[14px]">${hi?'too high':'too low'}</span></b>`}</div>
+        <div class="mt-4 flex flex-col gap-2">
+          ${T.msg?`<span class="text-[13px] font-extrabold" style="color:#166534">${T.msg}</span>`:''}
+          <span class="text-[16px] font-bold">${diff?'<b>How far off is your line?</b> (the bigger price minus the smaller one)':`Square it: <b>what is ${m} × ${m}?</b>`}</span>
+          ${T.hint?`<span class="text-[13px] font-bold" style="color:#9a3412">${T.hint}</span>`:''}
+          <span class="flex items-center gap-2 flex-wrap"><label class="ansbox ${T.tries&&T.hint?'shake':''}">${diff?'<span>$</span>':''}<input id="scIn" style="width:${diff?72:96}px" inputmode="numeric" autocomplete="off" value="${T.val}" aria-label="${diff?'How far off, in thousands':`${m} times ${m}`}">${diff?'<span>k</span>':''}</label>
+            <button class="btn btn-main" id="scCheck">Check</button><button class="btn btn-ghost btn-sm" id="scShow">Show me</button></span>
+        </div>
+      </div></div>`;
+  } else {
+    h+=`<div class="mt-4">${HOUSES.map((H,i)=>`<div class="sqrow">${houseSVG(i,H.s,'sold')}<span>${H.s.toLocaleString('en-US')} sq ft</span><span class="text-[color:var(--soft)]">off by ${fmtK(ms[i])}</span><span class="tabnum">${ms[i]} × ${ms[i]} = <b>${fmtN(sq[i])}</b></span></div>`).join('')}</div>`;
+    if(part===1) h+=`<div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-[color:var(--rule)]">
+        <span class="text-[15px] font-bold">${T.msg?`<span style="color:#166534">${T.msg}</span> `:''}All 5 misses squared.</span>
+        <button class="btn btn-main" id="scPart2">Next: one number for the whole line &rarr;</button></div>`;
+    else if(T.stage<3) h+=`<div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-[color:var(--rule)]">
+        <div class="flex flex-col gap-1 min-w-0 flex-1">
+          <span class="text-[16px] font-bold"><b>Average</b> them: add up the 5 squares, then divide by 5. What do you get?</span>
+          ${T.hint?`<span class="text-[13px] font-bold" style="color:#9a3412">${T.hint}</span>`:''}</div>
+        <span class="flex items-center gap-2"><label class="ansbox ${T.tries&&T.hint?'shake':''}"><input id="scIn" style="width:96px" inputmode="decimal" autocomplete="off" value="${T.val}" aria-label="Average of the squares"></label>
+          <button class="btn btn-main" id="scCheck">Check</button><button class="btn btn-ghost btn-sm" id="scShow">Show me</button></span></div>`;
+    else h+=`<div class="sstep"><div class="slabel">Average the squares</div>
+        <div class="text-[16px] font-bold tabnum">(${sq.map(fmtN).join(' + ')}) ÷ 5 = <b style="color:var(--ink)">${fmtN(mse)}</b></div></div>
+      <div class="namebox"><div class="slabel">How bad your line is</div><div class="disp text-[26px] font-semibold">${fmtN(mse)}</div>
+        <p class="task mt-1">The bigger this number, the more your line needs to change. A perfect line would score 0. Its official name is the <b>mean squared error</b>: the average (mean) of the squared misses.</p></div>
+      <div class="flex justify-end border-t border-[color:var(--rule)] mt-5 pt-4"><button class="btn btn-main" id="scNext">Next: how much to change &rarr;</button></div>`;
+  }
+  $('scoreStage').innerHTML=h;
+  if($('scIn')){ const chk=allSq?avgCheck:scCheck, show=allSq?()=>avgAccept(true):()=>scAccept(true);
+    const inp=$('scIn'); inp.oninput=()=>{ T.val=inp.value; }; inp.onkeydown=e=>{ if(e.key==='Enter') chk(); };
+    $('scCheck').onclick=chk; $('scShow').onclick=show; }
+  if($('scPart2')) $('scPart2').onclick=()=>{ T.part=2; T.msg=''; T.val=''; T.tries=0; T.hint=''; update(); window.scrollTo({top:0,behavior:'smooth'}); };
+  if($('scNext')) $('scNext').onclick=()=>{ go(3); window.scrollTo({top:0,behavior:'smooth'}); };
+}
+function scSquares(){ return misses(S.first).map(e=>{ const m=Math.round(Math.abs(e)); return m*m; }); }
+function avgCheck(){ const T=S.sc, sq=scSquares(), sum=sq.reduce((a,b)=>a+b,0), mse=sum/5, v=parseFloat(String(T.val).replace(/[^0-9.]/g,''));
+  if(isNaN(v)){ T.hint='Type a number.'; update(); $('scIn')?.focus({preventScroll:true}); return; }
+  if(Math.abs(v-mse)<=1) return avgAccept(false);
+  T.tries++;
+  T.hint=Math.abs(v-sum)<=1?`That's the total. Now divide it by 5.`:T.tries===1?`Not quite. Add the 5 squares first, then divide by 5.`:`${sq.map(fmtN).join(' + ')} = ${fmtN(sum)}. Now ${fmtN(sum)} ÷ 5 = ?`;
+  update(); $('scIn')?.focus({preventScroll:true}); }
+function avgAccept(shown){ const T=S.sc; T.stage=3; T.msg=''; T.val=''; T.tries=0; T.hint=''; update(); }
+function scMiss(i){ return Math.round(Math.abs(misses(S.first)[i])); }
+function scCheck(){ const T=S.sc, i=T.i, m=scMiss(i), v=parseFloat(String(T.val).replace(/[^0-9.]/g,''));
+  if(isNaN(v)){ T.hint='Type a number.'; update(); $('scIn')?.focus({preventScroll:true}); return; }
+  if(T.phase==='diff'){
+    if(v===m) return scAccept(false);
+    T.tries++; const g=Math.round(guess(S.first,HOUSES[i].s)), p=HOUSES[i].p;
+    T.hint=T.tries===1?'Not quite. Take the bigger price minus the smaller one.':`${Math.max(g,p)} − ${Math.min(g,p)} = ?`;
+  } else {
+    if(v===m*m) return scAccept(false);
+    T.tries++; const t=m%10===0&&m>=10?m/10:0;
+    T.hint=T.tries===1?`Not quite. Multiply ${m} by itself.`:t?`Tip: ${t} × ${t} = ${t*t}, then add two zeros.`:`${m} × ${m} = ${m} + ${m} + ... (${m} times)`;
+  }
+  update(); $('scIn')?.focus({preventScroll:true}); }
+function scAccept(shown){ const T=S.sc, i=T.i, m=scMiss(i), hi=misses(S.first)[i]>0;
+  if(T.phase==='diff'){ T.phase='sq'; T.msg=`${shown?'':'Right! '}Off by ${fmtK(m)}: your line was ${hi?'too high':'too low'}.`; }
+  else { S.squared[i]=1; S.justSq=i; T.msg=`${shown?'':'Right! '}${m} × ${m} = ${fmtN(m*m)}.`; T.phase='diff'; T.i=Math.max(0,S.squared.indexOf(0)); }
+  T.val=''; T.tries=0; T.hint='';
+  update(); S.justSq=-1; $('scIn')?.focus({preventScroll:true}); }
+function renderShelf(){
+  const el=$('shelf'); if(!el) return; const w=el.clientWidth||320, h=+el.getAttribute('height')||150, base=h-24;
+  const ms=misses(S.first).map(e=>Math.round(Math.abs(e)));
+  const sum=ms.reduce((a,b)=>a+b,0)||1, mx=Math.max(...ms)||1;
+  const slot=m=>Math.max(m*k,46)+6; let k=Math.min((base-8)/mx,1.4); while(k>0.02&&ms.reduce((t,m)=>t+slot(m),4)>w) k*=0.92;
+  let x=4, s=`<line x1="0" x2="${w}" y1="${base}" y2="${base}" stroke="#e7dccb" stroke-width="2"/>`;
+  ms.forEach((m,i)=>{ const side=Math.max(m*k,2), sx=x+(slot(m)-6-side)/2, hi=misses(S.first)[i]>0, col=hi?'#e11d48':'#d97706';
+    if(S.squared[i]){ s+=`<rect class="${S.justSq===i?'grow':''}" style="transform-origin:0 100%" x="${sx}" y="${base-side}" width="${side}" height="${side}" fill="${col}" fill-opacity=".18" stroke="${col}" stroke-width="1.5"/>`;
+      if(side>40) s+=`<text x="${sx+side/2}" y="${base-side/2+4}" text-anchor="middle" font-size="11" font-weight="800" fill="${hi?'#9f1239':'#92400e'}">${fmtN(m*m)}</text>`; }
+    else s+=`<line x1="${sx+side/2}" x2="${sx+side/2}" y1="${base}" y2="${base-side}" stroke="${col}" stroke-width="3" stroke-dasharray="3 3"/>`;
+    s+=`<text x="${sx+side/2}" y="${base+16}" text-anchor="middle" font-size="11" font-weight="800" fill="#5b6476">${S.squared[i]?`${m}×${m}`:fmtK(m)}</text>`;
+    x+=slot(m); });
+  el.innerHTML=s;
+  const tot=ms.reduce((t,m,i)=>t+(S.squared[i]?m*m:0),0);
+  if($('badTotal')) tween($('badTotal'),tot);
+  const n=S.squared.reduce((a,b)=>a+b,0);
+  if($('badSum')) $('badSum').innerHTML=n===5?`Typical miss:<br><b class="text-[16px] text-[color:var(--ink)]">about ${fmtK(Math.sqrt(tot/5))}</b>`:`${n} of 5 squared`;
+}
+function tween(el,to){ const from=+(el.dataset.v||0); el.dataset.v=to; if(from===to){el.textContent=fmtN(to);return;} const t0=performance.now();
+  const step=t=>{const k=Math.min(1,(t-t0)/500); el.textContent=fmtN(from+(to-from)*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(step);}; requestAnimationFrame(step); }
+
+
+/* chapter 4: which way (graph + questions), then the data table.
+   chapter 5: plug the averages into the textbook update rule.
+   Textbook form: price = m*x + b, x = plain size in 1,000s of sq ft.
+   m <- m - alpha*average(miss*x), b <- b - alpha*average(miss), alpha = 0.2. */
+const r1=x=>{ const v=Math.round(x*10)/10; return v===0?0:v; }, f1=x=>Math.abs(r1(x)).toLocaleString('en-US',{maximumFractionDigits:1}),
+  sgn=x=>r1(x)<0?`−${f1(x)}`:r1(x)>0?`+${f1(x)}`:'0', num=x=>r1(x)<0?`−${f1(x)}`:f1(x), f1s=x=>(r1(x)<0?'−':'')+Math.abs(r1(x)).toFixed(1);
+const r2=x=>{ const v=Math.round(x*100)/100; return v===0?0:v; }, n2=x=>{ const v=r2(x); return (v<0?'−':'')+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:2}); };
+// direction clues (which way): average miss, and miss weighted by distance from the middle house
+function c5Data(L){ const e=HOUSES.map(h=>Math.round(guess(L,h.s))-h.p); return {e, g0:mean(e), g1:mean(e.map((v,i)=>v*u(HOUSES[i].s)))}; }
+function c5Target(L){ const D=c5Data(L); return {lv:L.lv-D.g0, tl:L.tl-D.g1}; }   // rough preview of where the line is headed
+const ALPHA=0.2, xk=s=>s/1000;
+const tbFrom=L=>({m:L.tl, b:L.lv-L.tl*MID/1000}), tbTo=T=>({lv:T.b+T.m*MID/1000, tl:T.m});
+function gdData(L){ const T=tbFrom(L), e=HOUSES.map(h=>Math.round(guess(L,h.s))-h.p), x=HOUSES.map(h=>xk(h.s)), ex=e.map((v,i)=>r2(v*x[i]));
+  const ae=r2(mean(e)), aex=r2(mean(ex)); return {T, e, x, ex, ae, aex, nm:r1(T.m-ALPHA*aex), nb:r1(T.b-ALPHA*ae)}; }
+function gdTarget(L){ const D=gdData(L); return tbTo({m:D.nm, b:D.nb}); }
+const qRight=(q,L)=>{ const D=c5Data(L); return q===0?(D.g0>0?'high':'low'):(D.g1<0?'big':'small'); };
+
+P[3]={enter(){ const key=JSON.stringify(S.first); if(S.f.key!==key) S.f=freshF(key); S.fix={...S.first}; }, html:()=>'', wire(){}, upd(){},
+  done:()=>!!S.f.tab, hint:'Work out which way, then crunch the misses'};
+function c5Answer(q,a){ const F=S.f, D=c5Data(S.fix), g=q===0?D.g0:D.g1;
+  F.q[q]=(Math.abs(g)<1||a===qRight(q,S.fix))?a:'wrong:'+a; update(); }
+function renderC5Bar(){
+  const F=S.f, box=$('panel'), L=S.fix, st=F.step, D=c5Data(L);
+  const qOk=q=>F.q[q]&&!F.q[q].startsWith('wrong');
+  const head=`<div><div class="ptitle">Chapter 4 · Part 1 of 2</div><div class="phead">Which way?</div>
+    <div class="hdots mt-2">${[0,1,2].map(i=>`<i class="${i<st?'on':i===st?'cur':''}"></i>`).join('')}</div></div>`;
+  let body='', canNext=false;
+  if(st<=1){ const q=st, ok=qOk(q), wrong=F.q[q]?.startsWith('wrong')?F.q[q].slice(6):null;
+    const opts=q===0?[['high','Too high'],['low','Too low']]:[['small','The small ones'],['big','The big ones']];
+    const ask=q===0?'Overall, is your line <b>too high or too low</b>? (Big misses count more.)':'Compared with the others, which houses does your line price <b>too cheap</b>?';
+    const yes=q===0?(Math.abs(D.g0)<1?'About balanced, so no shift needed.':`Right! So the line should <b>shift ${D.g0>0?'down':'up'}</b>. See the green arrow.`)
+                   :(Math.abs(D.g1)<1?'The tilt looks about right.':`Right! So the line should <b>tilt ${D.g1<0?'steeper':'flatter'}</b>.`);
+    body=`<p class="task">${ask}</p>
+      <div class="grid grid-cols-2 gap-2">${opts.map(([a,t])=>`<button class="choice ${ok&&F.q[q]===a?'right':''} ${wrong===a?'wrong':''}" data-a="${a}" ${ok?'disabled':''}>${t}</button>`).join('')}</div>
+      <div class="text-[14px] font-bold" style="color:${ok?'#166534':'#9a3412'}">${ok?yes:wrong?(q===0?'Look again: add up the bars. Are the SOLD signs more below your line, or above it?':'Look at each end: which end has SOLD signs sitting above your line?'):''}</div>`;
+    canNext=ok; }
+  else { const w0=Math.abs(D.g0)<1?'stay put':D.g0>0?'shift down':'shift up', w1=Math.abs(D.g1)<1?'keep its tilt':D.g1<0?'tilt steeper':'tilt flatter';
+    body=`<p class="task">The plan: the line should <b>${w0}</b> and <b>${w1}</b>. The dashed green line shows roughly where that takes it.</p>
+      <p class="task">But <b>how far</b>? The misses can tell us exactly. Let's crunch them.</p>`;
+    canNext=true; }
+  box.innerHTML=`${head}<div class="flex flex-col gap-3">${body}</div>
+    <div class="flex items-center justify-between gap-2 border-t border-[color:var(--rule)] pt-3 mt-auto">
+      <button class="btn btn-ghost btn-sm" id="c5Back" ${st===0?'disabled':''}>&larr; Back</button>
+      <button class="btn btn-main" id="c5Next" ${canNext?'':'disabled'}>Next &rarr;</button></div>`;
+  box.querySelectorAll('.choice').forEach(b=>b.onclick=()=>c5Answer(st,b.dataset.a));
+  $('c5Back').onclick=()=>{ if(F.step>0){ F.step--; update(); } };
+  $('c5Next').onclick=()=>{ if(!canNext) return; if(st===2){ F.part=2; update(); window.scrollTo({top:0,behavior:'smooth'}); return; } F.step++; update(); };
+}
+// chapter 4, part 2: the data table that produces the two averages
+function renderTable(){
+  const F=S.f, D=gdData(S.first), on=F.tab;
+  const cell=(id,txt,style='')=>`<span class="cell ${on?'on':''}" id="${id}" ${style}>${txt}</span>`;
+  $('scoreStage').innerHTML=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">Chapter 4 · Part 2 of 2</div><div class="phead">How much to change?</div></div>
+      <button class="btn btn-main" id="tbCalc" ${on||F.calcBusy?'disabled':''}>${F.calcBusy?'Calculating...':on?'Calculated':'Calculate'}</button></div>
+    <p class="task mt-2">Two numbers from five houses tell us how far to move the line: one for <b class="cb">b</b> (where the line starts) and one for <b class="cm">m</b> (its slope).</p>
+    <div class="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.8fr)] mt-3 items-start">
+      <div class="overflow-x-auto"><table class="w-full text-[15px] font-bold tabnum dtab"><colgroup><col style="width:19%"><col style="width:15%"><col style="width:13%"><col style="width:16%"><col style="width:15%"><col style="width:22%"></colgroup>
+        <thead><tr class="text-[12.5px] text-[color:var(--soft)] uppercase tracking-wide"><th class="tl">House</th><th>Your line</th><th>Sold</th><th class="hl">miss</th><th>X</th><th class="hl">miss × X</th></tr></thead>
+        <tbody>${HOUSES.map((h,i)=>`<tr id="tr${i}"><td class="tl" id="tH${i}">${h.s.toLocaleString('en-US')} sq ft</td><td style="color:var(--line)" id="tL${i}">${fmtK(Math.round(guess(S.first,h.s)))}</td><td id="tS${i}">${fmtK(h.p)}</td>
+          <td class="hl">${cell('cm'+i,sgn(D.e[i]),`style="color:${D.e[i]>0?'#be123c':'#b45309'}"`)}</td><td>${cell('cx'+i,n2(D.x[i]))}</td><td class="hl">${cell('cp'+i,n2(D.ex[i]))}</td></tr>`).join('')}</tbody>
+        <tfoot><tr class="avg"><td class="tl">Average</td><td></td><td></td><td class="hl" id="tdAvM"><span class="avgv cb ${on?'on':''}" id="avM">${n2(D.ae)}</span></td><td></td><td class="hl" id="tdAvX"><span class="avgv cm ${on?'on':''}" id="avX">${n2(D.aex)}</span></td></tr></tfoot>
+      </table></div>
+      <div class="flex flex-col gap-3 text-[14px] font-bold text-[color:var(--soft)]">
+        <div class="slabel">What each column means</div>
+        <div><b class="text-[color:var(--ink)]">miss</b> = your line − sold price. Plus means your line was too high, minus too low.</div>
+        <div><b class="text-[color:var(--ink)]">X</b> = the house size, in 1,000s of sq ft. So the 850 sq ft house has X = 0.85.</div>
+        <div><b class="text-[color:var(--ink)]">miss × X</b> gives bigger houses more say in the slope.</div>
+        <div class="border-t border-dashed border-[color:var(--rule)] pt-3">The <b class="cb">average miss</b> and the <b class="cm">average of miss × X</b> will help us adjust our line.</div>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--rule)] mt-4 pt-4">
+      <button class="btn btn-ghost btn-sm" id="tbBack">&larr; Which way</button>
+      <button class="btn btn-main" id="tbNext" ${on?'':'disabled'}>Next: fix the line &rarr;</button></div>`;
+  $('tbBack').onclick=()=>{ if(F.calcBusy) return; F.part=1; update(); };
+  if(!on&&!F.calcBusy) $('tbCalc').onclick=tbCalc;
+  if(on) $('tbNext').onclick=()=>{ go(4); window.scrollTo({top:0,behavior:'smooth'}); };
+}
+async function tbCalc(){ const F=S.f, D=gdData(S.first); F.calcBusy=true; $('tbCalc').disabled=true; $('tbCalc').textContent='Calculating...';
+  const msg=t=>{ if($('tbMsg')) $('tbMsg').innerHTML=t; };
+  const mark=(ids,on)=>ids.forEach(id=>$(id)?.classList.toggle('src',on));
+  const row=(i,on)=>$('tr'+i)?.classList.toggle('calcrow',on);
+  // one cell: light up its inputs, show the sum, then pop in the answer
+  const work=async(i,cellId,srcIds,formula,result,color)=>{ const el=$(cellId); if(!el) return; row(i,true); mark(srcIds,true);
+    el.className='cell on formula'; el.style.color=''; el.innerHTML=formula; await sleep(650);
+    el.className='cell on res'; el.style.color=color||''; el.innerHTML=result; await sleep(320);
+    mark(srcIds,false); row(i,false); };
+  msg('<b>miss</b> = your line − sold price, house by house');
+  for(let i=0;i<5;i++){ const g=Math.round(guess(S.first,HOUSES[i].s)), p=HOUSES[i].p;
+    await work(i,'cm'+i,['tL'+i,'tS'+i],`${g} − ${p}`,sgn(D.e[i]),D.e[i]>0?'#be123c':'#b45309'); }
+  await sleep(300);
+  msg('<b>x</b> = the house size in 1,000s of sq ft');
+  for(let i=0;i<5;i++) await work(i,'cx'+i,['tH'+i],`${HOUSES[i].s.toLocaleString('en-US')} ÷ 1,000`,n2(D.x[i]));
+  await sleep(300);
+  msg('<b>miss × X</b> = multiply the two');
+  for(let i=0;i<5;i++) await work(i,'cp'+i,['cm'+i,'cx'+i],`${sgn(D.e[i])} × ${n2(D.x[i])}`,n2(D.ex[i]));
+  await sleep(400);
+  // averages: show the sum, then count up
+  const avg=async(tdId,elId,list,val,fmt)=>{ $(tdId)?.classList.add('src'); const sum=list.reduce((a,b)=>a+b,0);
+    msg(`(${list.map((v,j)=>j?(v<0?`− ${n2(-v)}`:`+ ${n2(v)}`):n2(v)).join(' ')}) ÷ 5 = <b>${n2(val)}</b>`);
+    const el=$(elId); if(el){ el.classList.add('on'); await anim(900,e=>{ el.textContent=n2(val*e); }); el.textContent=n2(val); }
+    await sleep(900); $(tdId)?.classList.remove('src'); };
+  await avg('tdAvM','avM',D.e,D.ae);
+  await avg('tdAvX','avX',D.ex,D.aex);
+  F.calcBusy=false; F.tab=true; if(S.ch===3) update(); }
+
+// chapter 5: plug the averages into the update rule
+P[4]={enter(){ const key=JSON.stringify(S.first); if(S.p.key!==key) S.p=freshP(key); S.fix=S.p.pushed?gdTarget(S.first):{...S.first}; }, html:()=>'', wire(){}, upd(){},
+  done:()=>S.p.pushed, hint:'Plug in the numbers, then update the line'};
+function renderEq(L=S.fix,title='Your line is an equation',blank=false){ const T=tbFrom(L), q='?';
+  $('eqBar').innerHTML=`<div class="eqstrip"><span class="slabel" style="margin:0">${title} <span class="text-[color:var(--faint)]" style="text-transform:none;letter-spacing:0">· y = <span class="cm">m</span> × X + <span class="cb">b</span></span></span>
+    <span class="eqright"><span class="disp eqline">price = <span id="eqM" class="slot cm tabnum">${blank?q:f1s(T.m)}</span> × X + <span id="eqB" class="slot cb tabnum">${blank?q:f1s(T.b)}</span></span>
+      <span class="eqcap"><span class="cm">m</span> = slope ($k per 1,000 sq ft) &nbsp;·&nbsp; <span class="cb">b</span> = price at X = 0</span></span></div>`; }
+function renderPlug(){
+  const P5=S.p, D=gdData(S.first), T=D.T, box=$('panel');
+  const row=k=>{ const isM=k==='m', locked=isM?false:!P5.done.m, ok=P5.done[k];
+    return `<div class="plugrow"><span class="whitespace-nowrap"><span class="${isM?'cm':'cb'}">${k}</span> &larr; ${f1s(isM?T.m:T.b)} − 0.2 × (<span class="${isM?'cm':'cb'}">${n2(isM?D.aex:D.ae)}</span>) =</span>
+      <input id="pIn${k}" class="ans ${ok?'ok':''}" inputmode="decimal" autocomplete="off" value="${ok?f1s(isM?D.nm:D.nb):P5.val[k]}" aria-label="New ${k}" ${ok||locked||P5.pushed?'disabled':''}></div>
+      ${ok?'':`<div class="flex gap-2"><button class="btn btn-main btn-sm" id="pChk${k}" ${locked?'disabled':''}>Check</button><button class="btn btn-ghost btn-sm" id="pShw${k}" ${locked?'disabled':''}>Show me</button></div>`}
+      <div class="text-[13px] font-bold min-h-[18px]" style="color:${ok?'#166534':'#9a3412'}">${P5.fb[k]}</div>`; };
+  const both=P5.done.m&&P5.done.b;
+  box.innerHTML=`<div><div class="ptitle">Chapter 5</div><div class="phead">Fixing the line</div></div>
+    <p class="task">You know the direction (${(()=>{ const C=c5Data(S.first); return `${Math.abs(C.g0)<1?'no shift':C.g0>0?'shift down':'shift up'}, ${Math.abs(C.g1)<1?'same tilt':C.g1<0?'tilt steeper':'tilt flatter'}`; })()}). The update rule (gradient descent) works out <b>how far</b>, using the two averages from the table:</p>
+    <div class="mathbox"><div class="slabel">The update rule</div>
+      <div class="font-extrabold leading-[2] tabnum"><div><span class="cm">m</span> &larr; m − α × average(miss × X)</div><div><span class="cb">b</span> &larr; b − α × average(miss)</div></div>
+      <div class="text-[12.5px] font-bold text-[color:var(--soft)] mt-1">α (step size) = 0.2</div></div>
+    <div class="rounded-xl px-3 py-3 border-2 border-dashed flex flex-col gap-1.5 text-[15px] font-extrabold" style="border-color:#c7d2fe">
+      <div class="slabel" style="color:var(--line)">Your turn: plug in the numbers</div>${row('m')}${row('b')}</div>
+    ${P5.pushed?`<p class="task">One small step: the line moved a little toward the sales. Repeat this step many times and it lands on the best line. That's next.</p>`
+      :`<p class="text-[14px] font-bold">${P5.busy?P5.msg:both?'Both worked out. Now put them into the equation.':'Work out both new numbers, then update the line.'}</p>`}
+    <div class="flex items-center justify-between gap-2 border-t border-[color:var(--rule)] pt-3 mt-auto">
+      ${P5.pushed?'<button class="btn btn-ghost btn-sm" id="pAgain">Start over</button>':'<span></span>'}
+      ${P5.pushed?'<button class="btn btn-main" id="pNext">Next &rarr;</button>':`<button class="btn btn-main" id="pRun" ${both&&!P5.busy?'':'disabled'}>Update the line</button>`}</div>`;
+  ['m','b'].forEach(k=>{ const inp=$('pIn'+k); if(inp&&!inp.disabled){ inp.oninput=()=>{ P5.val[k]=inp.value; }; inp.onkeydown=e=>{ if(e.key==='Enter') plugCheck(k,false); }; }
+    if($('pChk'+k)) $('pChk'+k).onclick=()=>plugCheck(k,false); if($('pShw'+k)) $('pShw'+k).onclick=()=>plugCheck(k,true); });
+  if($('pRun')&&both&&!P5.busy) $('pRun').onclick=plugRun;
+  if($('pAgain')) $('pAgain').onclick=()=>{ S.p=freshP(P5.key); S.fix={...S.first}; update(); };
+  if($('pNext')) $('pNext').onclick=()=>{ go(5); window.scrollTo({top:0,behavior:'smooth'}); };
+}
+function plugCheck(k,shown){ const P5=S.p, D=gdData(S.first), target=k==='m'?D.nm:D.nb, old=k==='m'?D.T.m:D.T.b, avg=k==='m'?D.aex:D.ae;
+  const v=parseFloat(String(P5.val[k]).replace(/[−–]/g,'-').replace(/[^0-9.\-]/g,''));
+  if(!shown){ if(isNaN(v)){ P5.fb[k]='Type a number.'; update(); $('pIn'+k)?.focus({preventScroll:true}); return; }
+    if(Math.abs(v-target)>0.15){ P5.tries[k]++; const prod=r2(-ALPHA*avg);
+      P5.fb[k]=P5.tries[k]===1?`Not quite. First do 0.2 × (${n2(avg)}), then subtract that from ${f1s(old)}.`:`0.2 × (${n2(avg)}) = ${n2(-prod)}. Subtracting a minus adds it: ${f1s(old)} + ${n2(prod)} = ?`;
+      update(); const el=$('pIn'+k); if(el){ el.classList.add('bad'); el.focus({preventScroll:true}); } return; } }
+  P5.done[k]=true; P5.fb[k]=`${shown?'':'Right! '}${k} goes from ${f1s(old)} to <b>${f1s(target)}</b>.`;
+  update(); if(k==='m') $('pInb')?.focus({preventScroll:true}); }
+function anim(dur,fn){ return new Promise(res=>{ const t0=performance.now(); const st=t=>{ const k=clamp((t-t0)/dur,0,1), e=1-Math.pow(1-k,3); fn(e); if(k<1) requestAnimationFrame(st); else res(); }; requestAnimationFrame(st); }); }
+function flyNum(fromEl,toEl,text,color){ return new Promise(res=>{ if(!fromEl||!toEl){ res(); return; } const a=fromEl.getBoundingClientRect(), b=toEl.getBoundingClientRect();
+  const el=document.createElement('span'); el.className='flynum'; el.textContent=text; el.style.color=color;
+  const fs=parseFloat(getComputedStyle(fromEl).fontSize), ts=parseFloat(getComputedStyle(toEl).fontSize);
+  el.style.fontSize=fs+'px'; el.style.left=a.left+'px'; el.style.top=a.top+'px'; document.body.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.transform=`translate(${b.left-a.left}px,${b.top-a.top}px) scale(${ts/fs})`; el.style.opacity=0; }));
+  setTimeout(()=>{ el.remove(); res(); },850); }); }
+async function plugRun(){ const P5=S.p; if(P5.busy) return; const D=gdData(S.first), T0=D.T, T1={m:D.nm,b:D.nb};
+  P5.busy=true; P5.msg='Putting the new <b class="cm">m</b> into the equation...'; update();
+  window.scrollTo({top:0,behavior:'smooth'}); await sleep(350);
+  const setT=T=>{ S.fix=tbTo(T); renderChart(); if($('eqM')) $('eqM').textContent=f1s(T.m); if($('eqB')) $('eqB').textContent=f1s(T.b); };
+  await flyNum($('pInm'),$('eqM'),f1s(T1.m),'#7c3aed'); $('eqM')?.classList.add('glow-m');
+  await anim(1300,e=>setT({m:T0.m+(T1.m-T0.m)*e, b:T0.b})); await sleep(300); $('eqM')?.classList.remove('glow-m');
+  P5.msg='Now the new <b class="cb">b</b>...'; if($('panel').querySelector('p.text-\\[14px\\]')) $('panel').querySelector('p.text-\\[14px\\]').innerHTML=P5.msg;
+  await flyNum($('pInb'),$('eqB'),f1s(T1.b),'#0891b2'); $('eqB')?.classList.add('glow-b');
+  await anim(900,e=>setT({m:T1.m, b:T0.b+(T1.b-T0.b)*e})); await sleep(300); $('eqB')?.classList.remove('glow-b');
+  P5.busy=false; P5.pushed=true; S.fix=gdTarget(S.first); update(); }
+
+// arrow on the chart: dir=+1 means the price goes up
+function arrowAt(x,y,dir,label){ const len=44, y2=y-dir*len, col='#16a34a';
+  return `<g class="blink"><line x1="${x}" y1="${y}" x2="${x}" y2="${y2+dir*10}" stroke="${col}" stroke-width="4" stroke-linecap="round"/><path d="M${x-9} ${y2+dir*12} L${x+9} ${y2+dir*12} L${x} ${y2} Z" fill="${col}"/>${label?`<text x="${x+12}" y="${(y+y2)/2+4}" font-size="13" font-weight="800" fill="${col}" stroke="#fff" stroke-width="4" paint-order="stroke">${label}</text>`:''}</g>`; }
+
+/* chapter 6: replay every step, end to end, on the new line. chapter 7: simulate many steps. */
+function stopPlay(){ if(S.it){ S.it.tok++; S.it.simBusy=false; } }
+function gdStep(L,alpha){ const T=tbFrom(L), e=HOUSES.map(h=>guess(L,h.s)-h.p), x=HOUSES.map(h=>xk(h.s));
+  const ae=mean(e), aex=mean(e.map((v,i)=>v*x[i])); return tbTo({m:T.m-alpha*aex, b:T.b-alpha*ae}); }
+const simL=()=>S.it.simL||S.first;
+P[5]={enter(){ const key=JSON.stringify(S.first); if(S.it.key!==key){ S.it=freshIt(key); }
+    const I=S.it; if(!I.L) I.L=gdTarget(S.first);
+    if(!I.demoDone) setTimeout(()=>{ if(S.ch===5&&S.it===I&&!I.demoDone&&!I.phase) runDemo(); },500); },
+  html:()=>'', wire(){}, upd(){}, done:()=>S.it.demoDone, hint:'Watch every step run again'};
+// fly a value from a point on the chart into an element (e.g. a card slot)
+function flyFromChart(sx,sy,toEl,text,color){ return new Promise(res=>{ if(!toEl){ res(); return; } const m=svg.getScreenCTM(), b=toEl.getBoundingClientRect();
+  const x=m.a*sx+m.e, y=m.d*sy+m.f, el=document.createElement('span'); el.className='flynum'; el.textContent=text; el.style.color=color; el.style.fontSize='15px';
+  el.style.left=x+'px'; el.style.top=(y-10)+'px'; document.body.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.transform=`translate(${b.left-x}px,${b.top-(y-10)}px)`; el.style.opacity=0; }));
+  setTimeout(()=>{ el.remove(); res(); },850); }); }
+async function runDemo(){ const I=S.it, tok=++I.tok, alive=()=>tok===I.tok&&S.ch===5;
+  I.L=gdTarget(S.first); I.demoDone=false;
+  const pause=async ms=>{ await sleep(ms); return alive(); };
+  const z=()=>[0,0,0,0,0];
+  const flyAll=async(kind)=>{ const L=I.L, jobs=HOUSES.map((h,i)=>{ const x=X(h.s), g=Math.round(guess(L,h.s));
+      if(kind==='pred') return flyFromChart(x,Y(g),$('rLine'+i),fmtK(g),'#4f46e5');
+      if(kind==='sold') return flyFromChart(x,Y(h.p),$('rSold'+i),fmtK(h.p),'#1e2433');
+      const e=g-h.p; return flyFromChart(x-30,(Y(g)+Y(h.p))/2,$('rMiss'+i),fmtK(Math.abs(e)),e>0?'#be123c':'#b45309'); });
+    await Promise.all(jobs); };
+  for(let k=0;k<2;k++){ const sp=k===0?1:0.7;
+    I.step=k+2; I.vis={pred:z(),sold:z(),miss:z(),cPred:z(),cSold:z(),cMiss:z()}; I.pop=null; I.D=gdData(I.L); I.cardL={...I.L};
+    I.phase='intro'; update(); if(!await pause(2400*sp)) return;
+    I.phase='pred'; for(let i=0;i<5;i++){ I.vis.pred[i]=1; I.pop={t:'pred',i}; update(); if(!await pause(600*sp)) return; }
+    I.pop=null; await flyAll('pred'); if(!alive()) return; I.vis.cPred=[1,1,1,1,1]; update(); if(!await pause(900*sp)) return;
+    I.phase='sold'; for(let i=0;i<5;i++){ I.vis.sold[i]=1; I.pop={t:'sold',i}; update(); if(!await pause(600*sp)) return; }
+    I.pop=null; await flyAll('sold'); if(!alive()) return; I.vis.cSold=[1,1,1,1,1]; update(); if(!await pause(900*sp)) return;
+    I.phase='miss'; for(let i=0;i<5;i++){ I.vis.miss[i]=1; update(); if(!await pause(550*sp)) return; }
+    await flyAll('miss'); if(!alive()) return; I.vis.cMiss=[1,1,1,1,1]; update(); if(!await pause(1000*sp)) return;
+    I.phase='bad'; update(); if(!await pause(3200*sp)) return;
+    // calculate how much to change: the two averages count up
+    I.phase='much'; update(); const D=I.D;
+    await anim(1400*sp,e=>{ if(!alive()) return; if($('rAe')) $('rAe').textContent=n2(D.ae*e); if($('rAex')) $('rAex').textContent=n2(D.aex*e); });
+    if(!await pause(1600*sp)) return;
+    // calculate both new numbers
+    I.phase='apply'; update(); if(!await pause(2600*sp)) return;
+    const T0=D.T, T1={m:D.nm,b:D.nb}, setT=T=>{ I.L=tbTo(T); renderChart(); if($('eqM')) $('eqM').textContent=f1s(T.m); if($('eqB')) $('eqB').textContent=f1s(T.b); };
+    // apply m: the line tilts (b stays put)
+    I.phase='applyM'; renderC6Bar(); if(!await pause(900*sp)) return;
+    await flyNum($('rNm'),$('eqM'),f1s(D.nm),'#7c3aed'); if(!alive()) return; $('eqM')?.classList.add('glow-m');
+    await anim(1700*sp,e=>{ if(alive()) setT({m:T0.m+(T1.m-T0.m)*e, b:T0.b}); }); if(!alive()) return;
+    $('eqM')?.classList.remove('glow-m'); if(!await pause(1000*sp)) return;
+    // apply b: the whole line shifts
+    I.phase='applyB'; renderC6Bar(); if(!await pause(900*sp)) return;
+    await flyNum($('rNb'),$('eqB'),f1s(D.nb),'#0891b2'); if(!alive()) return; $('eqB')?.classList.add('glow-b');
+    await anim(1500*sp,e=>{ if(alive()) setT({m:T1.m, b:T0.b+(T1.b-T0.b)*e}); }); if(!alive()) return;
+    if(!alive()) return; I.L=tbTo(T1); $('eqM')?.classList.remove('glow-m'); $('eqB')?.classList.remove('glow-b');
+    if(!await pause(1600*sp)) return;
+  }
+  I.phase='done'; I.demoDone=true; update(); }
+function renderC6Bar(){ const I=S.it, bar=$('c1Bar'), D=I.D;
+  const ph=['apply','applyM','applyB','graph'].includes(I.phase)?'fix':I.phase;
+  const dots=`<span class="hdots">${['pred','sold','miss','bad','much','fix'].map((p,j,arr)=>{ const at=arr.indexOf(ph); return `<i class="${I.phase==='done'||j<at?'on':j===at?'cur':''}"></i>`; }).join('')}</span>`;
+  let msg='', btns='';
+  const sq=D?D.e.map(v=>v*v):[], mse=sq.length?sq.reduce((a,b)=>a+b,0)/5:0;
+  if(I.phase==='intro') msg=`<b>Step ${I.step}.</b> Same steps as before, but now with the line <b>price = ${f1s(D.T.m)} × X + ${f1s(D.T.b)}</b>.`;
+  else if(I.phase==='pred') msg=`<b>1. Make predictions.</b> The line prices every house.`;
+  else if(I.phase==='sold') msg=`<b>2. The sales come in.</b> Each house shows what it really sold for.`;
+  else if(I.phase==='miss') msg=`<b>3. How far off?</b> Measure each miss: line minus sold price.`;
+  else if(I.phase==='bad') msg=`<b>4. How bad is the line?</b> Square each miss and average: (${sq.map(fmtN).join(' + ')}) ÷ 5 = <b>${fmtN(mse)}</b>.`;
+  else if(I.phase==='much') msg=`<b>5. How much to change?</b> Average the misses:<br><span class="cm">for m: average of miss × X = <span id="rAex" class="tabnum">0</span></span><br><span class="cb">for b: average miss = <span id="rAe" class="tabnum">0</span></span>`;
+  else if(['apply','applyM','applyB'].includes(I.phase)){ const on=k=>I.phase==='apply'||I.phase==='apply'+k?'':'opacity:.4';
+    const note=I.phase==='applyM'?' Applying the new <b class="cm">m</b>: the line tilts.':I.phase==='applyB'?' Applying the new <b class="cb">b</b>: the line shifts.':' Work out both new numbers:';
+    msg=`<b>6. Fix the line.</b>${note}<br><span class="cm" style="${on('M')}">m ← ${f1s(D.T.m)} − 0.2 × (${n2(D.aex)}) = <b id="rNm">${f1s(D.nm)}</b></span><br><span class="cb" style="${on('B')}">b ← ${f1s(D.T.b)} − 0.2 × (${n2(D.ae)}) = <b id="rNb">${f1s(D.nb)}</b></span>`; }
+  else if(I.phase==='done'){ msg='That\'s the whole loop: predict, compare, measure, score, work out the change, fix the line. Each time around, the line gets a little closer. You can repeat it as many times as you like.';
+    btns=`<button class="btn btn-ghost btn-sm" id="c6Replay">Replay</button><button class="btn btn-main" id="c6Next">Next: simulate it &rarr;</button>`; }
+  else msg='Getting ready...';
+  bar.innerHTML=`<div class="flex flex-col gap-1.5 min-w-0 flex-1"><div class="flex items-center gap-3"><span class="slabel" style="margin:0">${I.phase==='done'?'All steps done':`Step ${I.step} of 3`}</span>${dots}</div><span class="text-[14.5px] font-bold">${msg}</span></div><span class="flex gap-2">${btns}</span>`;
+  if($('c6Replay')) $('c6Replay').onclick=()=>{ I.phase=''; runDemo(); };
+  if($('c6Next')) $('c6Next').onclick=()=>{ go(6); window.scrollTo({top:0,behavior:'smooth'}); };
+}
+// chapter 7: simulate
+P[6]={enter(){ const key=JSON.stringify(S.first); if(S.it.key!==key){ S.it=freshIt(key); S.it.L=gdTarget(S.first); } const I=S.it;
+    if(!I.simBusy){ I.simL={...S.first}; I.steps=0; I.trail=[]; I.hist=[badness(S.first)]; I.diverged=false; } }, html:()=>'', wire(){}, upd(){},
+  done:()=>S.it.simDone, hint:'Run a simulation'};
+function renderSimBar(){ const I=S.it, bar=$('c1Bar'), best=tbFrom(BEST), last=I.hist[I.hist.length-1];
+  let verdict='Start from your first line. Pick a step size and how many times to repeat, then press Simulate.';
+  if(I.simBusy) verdict=`Repeating... step ${I.steps} of ${I.n}`;
+  else if(I.simDone){ if(I.diverged) verdict=`<b style="color:var(--hi)">Step size too big.</b> Each step overshoots more than the last, and the line flies off.`;
+    else if(last<BESTBAD*1.02) verdict=`<b style="color:#166534">Settled.</b> After ${I.steps} steps the line has landed on the best fit: price = ${f1s(best.m)} × X + ${f1s(best.b)}.`;
+    else if(I.alpha<=0.1) verdict=`<b>Small steps:</b> steady, but slow. After ${I.steps} steps it's still getting there. Try more steps or a bigger step size.`;
+    else verdict=`<b>Getting closer.</b> After ${I.steps} steps it's not quite there yet. Repeat more times to finish.`; }
+  bar.innerHTML=`<div class="w-full flex flex-col gap-3">
+    <div class="flex items-center justify-between gap-3 flex-wrap"><span class="slabel" style="margin:0">Repeat the loop many times</span><span class="text-[13px] font-extrabold text-[color:var(--soft)] tabnum" id="c6Steps">Steps done: ${I.steps}</span></div>
+    <div class="grid gap-4 md:grid-cols-[1fr_1fr_auto] items-center">
+      <label class="flex flex-col gap-1"><span class="text-[13.5px] font-extrabold">Step size α: <span class="tabnum" style="color:var(--line)" id="c6AlphaV">${I.alpha.toFixed(2)}</span></span>
+        <input type="range" min="0.05" max="0.4" step="0.05" value="${I.alpha}" id="c6Alpha" ${I.simBusy?'disabled':''} aria-label="Step size"></label>
+      <div class="flex flex-col gap-1"><span class="text-[13.5px] font-extrabold">Repeat</span><div class="flex gap-1.5">${[10,100,500].map(n=>`<button class="preset ${I.n===n?'on':''}" data-n="${n}" ${I.simBusy?'disabled':''}>${n} times</button>`).join('')}</div></div>
+      <div class="flex gap-2"><button class="btn btn-main" id="c6Run" ${I.simBusy?'disabled':''}>${I.simBusy?'Simulating...':'Simulate'}</button>${I.simDone&&!I.simBusy?'<button class="btn btn-main" id="c7Next">Next: price a new house &rarr;</button>':''}</div>
+    </div>
+    <span class="text-[14px] font-bold" id="c6Verdict">${verdict}</span></div>`;
+  renderC6Chart();
+  if(!I.simBusy){ $('c6Alpha').oninput=e=>{ I.alpha=+e.target.value; $('c6AlphaV').textContent=I.alpha.toFixed(2); };
+    $('c6Alpha').onchange=()=>update();
+    bar.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{ I.n=+b.dataset.n; update(); });
+    $('c6Run').onclick=runSim; }
+  if($('c7Next')) $('c7Next').onclick=()=>{ go(7); window.scrollTo({top:0,behavior:'smooth'}); };
+}
+function renderC6Chart(){ const el=$('c6Chart'); if(!el) return; const I=S.it, w=260, h=70, n=I.hist.length, mx=I.hist[0]*1.1||1;
+  const xs=i=>4+i/Math.max(n-1,1)*(w-8), ys=v=>h-12-clamp(v/mx,0,1.15)*(h-20);
+  let g=`<line x1="4" x2="${w-4}" y1="${h-12}" y2="${h-12}" stroke="#ebe4d8"/><line x1="4" x2="${w-4}" y1="${ys(BESTBAD)}" y2="${ys(BESTBAD)}" stroke="var(--best)" stroke-dasharray="4 4"/>
+    <text x="4" y="${h-1}" font-size="10" font-weight="800" fill="#9aa3b2">how bad the line is, step by step</text>`;
+  if(n>1) g+=`<polyline points="${I.hist.map((v,i)=>`${xs(i)},${ys(isFinite(v)?v:mx*2)}`).join(' ')}" fill="none" stroke="var(--line)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  el.innerHTML=g; }
+async function runSim(){ const I=S.it, tok=++I.tok; I.simBusy=true; I.simDone=false; I.diverged=false; I.simL={...S.first}; I.steps=0; I.trail=[]; I.hist=[badness(S.first)]; update();
+  const dur=I.n<=10?I.n*380:2600, t0=performance.now(), every=Math.max(1,Math.round(I.n/25));
+  await new Promise(res=>{ const frame=t=>{ if(tok!==I.tok||S.ch!==6){ res(); return; }
+      const want=Math.min(I.n, Math.ceil((t-t0)/dur*I.n));
+      while(I.steps<want){ I.simL=gdStep(I.simL,I.alpha); I.steps++; const b=badness(I.simL); I.hist.push(b); if(I.steps%every===0) I.trail.push({...I.simL});
+        if(!isFinite(b)||b>1e7||Math.abs(I.simL.tl)>5000){ I.diverged=true; break; } }
+      renderChart(); renderEq(I.simL,'Simulate: repeat the loop many times'); renderC6Chart(); $('cards').innerHTML=cardsFor(); if($('c6Steps')) $('c6Steps').textContent=`Steps done: ${I.steps}`; if($('c6Verdict')) $('c6Verdict').textContent=`Repeating... step ${I.steps} of ${I.n}`;
+      if(I.steps>=I.n||I.diverged){ res(); return; } requestAnimationFrame(frame); };
+    requestAnimationFrame(frame); });
+  if(tok!==I.tok) return; I.simBusy=false; I.simDone=true; update(); }
+
+/* chapter 8: price a new house by plugging its size into the final line */
+const LEARNED=()=>tbFrom(BEST);
+P[7]={enter(){ if(S.n8>2) S.n8=0; }, html:()=>'', wire(){}, upd(){}, done:()=>false, hint:'The end. Nice work!'};
+function n8Prices(){ const T=LEARNED(), x=S.newSize/1000, mR=r1(T.m), bR=r1(T.b); return {T, x, mR, bR, best:T.m*x+T.b, ans:mR*x+bR}; }
+function n8Refresh(){ const P8=n8Prices(); renderChart();
+  if($('n8Pic')) $('n8Pic').innerHTML=houseSVG(-1,S.newSize,'sale');
+  if($('n8Size')) $('n8Size').textContent=S.newSize.toLocaleString('en-US')+' sq ft';
+  if($('n8Best')) $('n8Best').textContent=S.n8>=2?fmtK(P8.ans):'?';
+  if($('n8Calc')) $('n8Calc').innerHTML=n8CalcText(P8); }
+function n8CalcText(P8){ return `price = <span class="cm">${f1s(P8.mR)}</span> × <b>${n2(P8.x)}</b> + <span class="cb">${f1s(P8.bR)}</span> = <b style="color:var(--line)">${fmtK(P8.ans)}</b>`; }
+// the house size flies into x, turns into thousands, then flies into the equation
+async function n8XAnim(){ const P8=n8Prices(), xs=n2(P8.x), alive=()=>S.ch===7&&S.n8===1;
+  await sleep(450); if(!alive()) return;
+  await flyNum($('n8Size'),$('n8X'),`${S.newSize.toLocaleString('en-US')} sq ft`,'#1e2433'); if(!alive()) return;
+  const xEl=$('n8X'); if(xEl){ xEl.className='xslot working'; xEl.textContent=`${S.newSize.toLocaleString('en-US')} ÷ 1,000`; }
+  await sleep(900); if(!alive()) return;
+  if(xEl){ xEl.className='xslot popnum'; xEl.textContent=xs; }
+  await sleep(600); if(!alive()) return;
+  await flyNum($('n8X'),$('n8Xeq'),xs,'#1e2433'); if(!alive()) return;
+  const eqEl=$('n8Xeq'); if(eqEl){ eqEl.className='xslot popnum'; eqEl.textContent=xs; }
+  S.n8x=true; await sleep(350); $('n8In')?.focus({preventScroll:true}); }
+function n8Check(shown){ const P8=n8Prices(), v=parseFloat(String(S.n8v).replace(/[^0-9.]/g,''));
+  if(!shown){ if(isNaN(v)){ S.n8hint='Type a number.'; update(); $('n8In')?.focus({preventScroll:true}); return; }
+    if(Math.abs(v-P8.ans)>2){ S.n8tries++; const prod=r1(P8.mR*P8.x);
+      S.n8hint=S.n8tries===1?`Not quite. Multiply ${f1s(P8.mR)} by ${n2(P8.x)} first, then add ${f1s(P8.bR)}.`:`${f1s(P8.mR)} × ${n2(P8.x)} = ${f1s(prod)}. Now add ${f1s(P8.bR)}.`;
+      update(); $('n8In')?.focus({preventScroll:true}); return; } }
+  S.n8=2; S.n8v=''; S.n8tries=0; S.n8hint=''; update(); }
+function renderC8Bar(){ const bar=$('c1Bar'), st=S.n8, P8=n8Prices();
+  if(st===0){ bar.innerHTML=`<div class="flex flex-col gap-1 min-w-0 flex-1"><span class="slabel" style="margin:0">Step 1 of 2 · A new listing</span>
+      <span class="text-[14.5px] font-bold">A new house just came on the market. Set its size with the slider on the left.</span></div>
+      <button class="btn btn-main" id="n8Next0">Next: price it &rarr;</button>`;
+    $('n8Next0').onclick=()=>{ S.n8=1; S.n8x=false; update(); n8XAnim(); }; return; }
+  if(st===1){ bar.innerHTML=`<div class="flex flex-col gap-2 min-w-0 flex-1"><span class="slabel" style="margin:0">Step 2 of 2 · Plug it into your line</span>
+      <span class="text-[14.5px] font-bold">The house is ${S.newSize.toLocaleString('en-US')} sq ft, so <b>X = <span id="n8X" class="xslot">${S.n8x?n2(P8.x):'?'}</span></b> (thousands of sq ft). Use your final line to price it:</span>
+      <span class="flex items-center gap-2 flex-wrap text-[17px] font-extrabold tabnum">price = <span class="cm">${f1s(P8.mR)}</span> × <span id="n8Xeq" class="xslot">${S.n8x?n2(P8.x):'?'}</span> + <span class="cb">${f1s(P8.bR)}</span> =
+        <label class="ansbox ${S.n8tries&&S.n8hint?'shake':''}"><span>$</span><input id="n8In" style="width:72px" inputmode="decimal" autocomplete="off" value="${S.n8v}" aria-label="Predicted price, in thousands"><span>k</span></label>
+        <button class="btn btn-main btn-sm" id="n8Chk">Check</button><button class="btn btn-ghost btn-sm" id="n8Shw">Show me</button></span>
+      ${S.n8hint?`<span class="text-[13px] font-bold" style="color:#9a3412">${S.n8hint}</span>`:''}</div>`;
+    const inp=$('n8In'); inp.oninput=()=>{ S.n8v=inp.value; }; inp.onkeydown=e=>{ if(e.key==='Enter') n8Check(false); };
+    $('n8Chk').onclick=()=>n8Check(false); $('n8Shw').onclick=()=>n8Check(true); return; }
+  bar.innerHTML=`<div class="w-full flex flex-col gap-3">
+    <div class="flex flex-col gap-1"><span class="slabel" style="margin:0">Priced!</span>
+      <span class="text-[15px] font-bold tabnum"><span id="n8Calc">${n8CalcText(P8)}</span></span>
+      <span class="text-[14px] font-bold text-[color:var(--soft)]">Slide the size to price other houses.</span></div>
+    <div class="storyend"><div class="storyico" aria-hidden="true">${houseSVG(2,2050,'sold')}</div>
+      <div class="min-w-0 flex-1"><div class="disp text-[16px] font-semibold">Back at the realty office</div>
+      <p class="text-[13px] font-bold text-[color:var(--soft)]">The realtor can now price any house in seconds, using the line you built from real sales. That's machine learning.</p></div>
+      <button class="btn btn-ghost btn-sm shrink-0" id="n8Again">&#8634; Play again</button></div></div>`;
+  $('n8Again').onclick=()=>{ stopPlay(); S=fresh(); go(0); };
+}
+
+/* ---------- chapter 1 opening: two flashcards, nothing else ---------- */
+function renderFlash(){
+  const C=S.c1, k=C.i, hi=FLASH[k], h=HOUSES[hi];
+  $('flashStage').innerHTML=`<div class="card-w p-4 lg:p-6 flex flex-col gap-4 fade-in max-w-[560px] mx-auto w-full">
+    ${k===0?'<p class="text-[15px] font-bold">Buyers want to know what these houses are worth. Start with two of them.</p>':''}
+    <div class="flex items-baseline justify-between gap-2"><div><div class="ptitle">Chapter 1 · House ${k+1} of 2</div><div class="phead">${k===0?'The smallest house':'The biggest house'}</div></div>
+      <div class="flex gap-1.5" aria-hidden="true">${FLASH.map((_,j)=>`<i style="width:9px;height:9px;border-radius:50%;display:inline-block;background:${j<=k?'var(--line)':'var(--rule)'}"></i>`).join('')}</div></div>
+    <div class="flash popin">
+      <div class="flash-house">${houseSVG(hi,h.s,'sale')}</div>
+      <div class="text-center text-[15px] font-extrabold">${h.s.toLocaleString('en-US')} sq ft</div>
+      <div class="text-center text-[13.5px] font-bold text-[color:var(--soft)]">What do you think it sold for?</div>
+      <div class="text-center flash-price tabnum" id="flashVal">${C.val[k]==null?'<span style="color:var(--faint)">Pick a price</span>':fmtK(C.val[k])}</div>
+      <div class="flex items-center gap-2"><button class="mini" data-fd="-10" aria-label="Lower guess">−</button>
+        <input type="range" min="0" max="700" step="5" value="${C.val[k]??0}" id="flashRange" class="range range-sm flex-1" aria-label="Your price guess for the ${h.s.toLocaleString('en-US')} sq ft house">
+        <button class="mini" data-fd="10" aria-label="Raise guess">+</button></div>
+    </div>
+    ${k===1?`<div class="text-[13px] font-bold text-[color:var(--soft)]">Your first guess: ${fmtK(C.g[0])} for the ${HOUSES[FLASH[0]].s.toLocaleString('en-US')} sq ft house.</div>`:''}
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-[13px] font-bold text-[color:var(--faint)]">No wrong answers yet. Go with your gut.</p>
+      <button class="btn btn-main" id="lockGuess" ${C.val[k]==null?'disabled':''}>${k===0?'Lock in my guess':'Lock in and plot my guesses'}</button>
+    </div>
+  </div>`;
+  const setV=v=>{ C.val[k]=clamp(Math.round(v/5)*5,5,700); $('flashRange').value=C.val[k]; $('flashVal').textContent=fmtK(C.val[k]); $('lockGuess').disabled=false; };
+  $('flashRange').oninput=()=>setV(+$('flashRange').value);
+  $('flashStage').querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>setV((C.val[k]??0)+(+b.dataset.fd)));
+  $('lockGuess').onclick=()=>{ if(C.val[k]==null) return; C.g[k]=C.val[k];
+    if(k===0){ C.i=1; say(`Got it: ${fmtK(C.g[0])}. Now the biggest house. <b>What do you think it sold for?</b>`); renderFlash(); return; }
+    C.i=2; startReveal(); };
+}
+
+const sleep=ms=>new Promise(res=>setTimeout(res,ms));
+const redrawC1=()=>{ P[0].enter(); $('panel').innerHTML=P[0].html(); P[0].wire(); update(); };
+// Your two guessed houses fly from their cards onto the chart, then the line draws itself through them.
+async function startReveal(){
+  const C=S.c1; C.gLanded=0; redrawC1();
+  document.getElementById('cardsSec').scrollIntoView({behavior:'smooth',block:'nearest'});
+  await sleep(450);
+  for(let k=0;k<2;k++){
+    if(S.ch!==0||S.c1!==C) return;
+    await flyTo(FLASH[k],C.g[k]); if(S.ch!==0||S.c1!==C) return;
+    C.gLanded=k+1; C.landed=FLASH[k]; update(); C.landed=-1; await sleep(300);
+  }
+  await sleep(300); if(S.ch!==0||S.c1!==C) return;
+  S.first=fromTags(C.g[0],C.g[1]); C.line=true; C.lineAnim=true; C.placed=0; redrawC1();
+  await sleep(900); if(S.ch!==0||S.c1!==C) return;
+  C.lineAnim=false; update();
+}
+// Each remaining house flies from its card in the neighborhood down onto its dot on your line.
+async function flyTo(hi,price,hangBelow=false,toSign=false){
+  const h=HOUSES[hi], src=document.querySelector(`.hcard[data-i="${hi}"] .hsvg`);
+  const pt=svg.createSVGPoint(); pt.x=X(h.s); pt.y=Y(price); const to=pt.matrixTransform(svg.getScreenCTM());
+  if(!src){ return; }
+  const from=src.getBoundingClientRect(), ghost=src.cloneNode(true);
+  Object.assign(ghost.style,{position:'fixed',left:`${from.left}px`,top:`${from.top}px`,width:`${from.width}px`,height:`${from.height}px`,zIndex:60,pointerEvents:'none',
+    transition:'transform .9s cubic-bezier(.45,.05,.3,1)',transformOrigin:'center'});
+  document.body.appendChild(ghost); src.style.opacity=.25;
+  const drawn=Math.min(from.width,from.height*100/70); // the drawing inside the card's svg box
+  const ctmS=svg.getScreenCTM().a, landY=toSign?to.y:hangBelow?to.y+(8+33.5)*ctmS:to.y-32.5*ctmS;
+  try{ await sleep(30); ghost.style.transform=`translate(${to.x-(from.left+from.width/2)}px, ${landY-(from.top+from.height/2)}px) scale(${(toSign?30:96)*ctmS/drawn})`; if(toSign){ ghost.style.transition+=', opacity .25s ease .7s'; ghost.style.opacity=0; } await sleep(950); }
+  finally{ ghost.remove(); src.style.opacity=''; }
+}
+async function predictNext(){
+  const C=S.c1; if(C.flying||!C.line) return; C.flying=true; redrawC1();
+  document.getElementById('cardsSec').scrollIntoView({behavior:'smooth',block:'nearest'});
+  await sleep(350);
+  for(const hi of [1,2,3]){
+    if(S.ch!==0||S.c1!==C) return;
+    await flyTo(hi,guess(S.first,HOUSES[hi].s)); if(S.ch!==0||S.c1!==C) return;
+    C.placed=hi; C.landed=hi;
+    say(`The ${HOUSES[hi].s.toLocaleString('en-US')} sq ft house: go up from its size to your line, and it says <b>${fmtK(guess(S.first,HOUSES[hi].s))}</b>.`);
+    update(); C.landed=-1; await sleep(350);
+  }
+  C.flying=false; redrawC1();
+}
+
+function renderC1Bar(){
+  const C=S.c1, bar=$('c1Bar');
+  if(!C.line){ bar.innerHTML=`<span class="text-[14px] font-bold text-[color:var(--soft)]">Two points make a line. Drawing yours...</span>`; return; }
+  if(C.placed<3){ bar.innerHTML=`<span class="text-[14px] font-bold">This is your <span style="color:var(--line)">pricing line</span>: find a house's size, go up to the line, read the price.</span>
+    <span class="flex gap-2">${C.flying?'':'<button class="btn btn-ghost btn-sm" id="c1Redo">Change my guesses</button>'}<button class="btn btn-main" id="c1Predict" ${C.flying?'disabled':''}>${C.flying?'Predicting...':'Now predict the next houses'}</button></span>`; }
+  else bar.innerHTML=`<span class="text-[14px] font-bold">Your line: <span style="color:var(--line)">${ruleText(S.first)}</span></span>
+    <span class="flex gap-2"><button class="btn btn-ghost btn-sm" id="c1Redo">Change my guesses</button><button class="btn btn-main" id="c1Next">Next: the sales come in &rarr;</button></span>`;
+  if($('c1Predict')&&!C.flying) $('c1Predict').onclick=predictNext;
+  if($('c1Redo')) $('c1Redo').onclick=()=>{ const v=[...C.val]; S.c1=freshC1(); S.c1.val=v; S.maxCh=0; P[0].enter(); $('panel').innerHTML=P[0].html(); P[0].wire(); update(); renderProg(); };
+  if($('c1Next')) $('c1Next').onclick=()=>{ go(1); window.scrollTo({top:0,behavior:'smooth'}); };
+}
+
+function renderC2Bar(){
+  const D=S.c2, bar=$('c1Bar'), all=S.revealed.every(v=>v);
+  if(all&&!D.flying){
+    bar.innerHTML=`<span class="text-[14px] font-bold">All 5 sold. Some sold above your line, some below.</span>
+      <button class="btn btn-main" id="c2Next">Next: how bad is my line? &rarr;</button>`;
+    $('c2Next').onclick=()=>{ go(2); window.scrollTo({top:0,behavior:'smooth'}); }; return; }
+  bar.innerHTML=`<span class="text-[14px] font-bold">Your line made a guess for every house. Now the real sales come in.</span>
+    <button class="btn btn-main" id="c2Sold" ${D.flying?'disabled':''}>${D.flying?'Plotting the sales...':'See what they sold for'}</button>`;
+  if(!D.flying) $('c2Sold').onclick=revealSales;
+}
+async function revealSales(){
+  const D=S.c2; if(D.flying) return; D.flying=true; D.sold=true; D.justSold=true; S.revealed=[0,0,0,0,0]; update();
+  document.getElementById('cardsSec').scrollIntoView({behavior:'smooth',block:'nearest'});
+  await sleep(1100); if(S.ch!==1) { D.flying=false; return; }
+  D.justSold=false; update();
+  for(let i=0;i<HOUSES.length;i++){
+    await flyTo(i,HOUSES[i].p,false,true); if(S.ch!==1){ D.flying=false; return; }
+    S.revealed[i]=1; S.justRev=i; D.landed=i; update(); S.justRev=-1; D.landed=-1; await sleep(250);
+  }
+  D.flying=false; update();
+}
+
+/* ---------- navigation ---------- */
+function renderProg(){ $('prog').innerHTML=CH.map((c,i)=>`<button class="pstep ${i<S.ch?'done':''} ${i===S.ch?'cur':''}" data-c="${i}" aria-label="Chapter ${i+1}: ${c.t}"><span class="pbar"><i></i></span><span class="plabel"><span class="lg:hidden">${i===S.ch?`${i+1}. ${c.s}`:i+1}</span><span class="hidden lg:inline">${i+1}. ${c.t}</span></span></button>`).join('');
+  $('prog').querySelectorAll('.pstep').forEach(b=>b.onclick=()=>go(+b.dataset.c)); }
+function fillUpTo(c){
+  if(c>=1&&!(S.c1.line&&S.c1.placed>=3)){ S.c1={...freshC1(), i:2, g:[250,450], val:[250,450], line:true, placed:3, gLanded:2}; S.first=fromTags(250,450); }
+  if(c>=2&&!S.revealed.every(v=>v)){ S.c2={sold:true,justSold:false,flying:false,landed:-1}; S.revealed=[1,1,1,1,1]; }
+  const key=JSON.stringify(S.first);
+  if(c>=3&&S.sc.stage<3){ S.sc={...freshSc(),stage:3,part:2}; S.squared=[1,1,1,1,1]; }
+  if(c>=4&&(!S.f.tab||S.f.key!==key)){ S.f={...freshF(key),part:2,step:2,q:[qRight(0,S.first),qRight(1,S.first)],tab:true}; }
+  if(c>=6&&(!S.it.demoDone||S.it.key!==key)){ S.it={...freshIt(key),L:gdTarget(S.first),demoDone:true,phase:'done',vis:{pred:[1,1,1,1,1],sold:[1,1,1,1,1],miss:[1,1,1,1,1],cPred:[1,1,1,1,1],cSold:[1,1,1,1,1],cMiss:[1,1,1,1,1]}}; S.it.D=gdData(S.it.L); }
+  if(c>=7&&!S.it.simDone){ S.it.simDone=true; S.it.simL={...S.first}; S.it.hist=[badness(S.first)]; }
+  if(c>=5&&(!S.p.pushed||S.p.key!==key)){ const D=gdData(S.first); S.p={...freshP(key),done:{m:true,b:true},pushed:true,fb:{m:`m goes from ${f1s(D.T.m)} to <b>${f1s(D.nm)}</b>.`,b:`b goes from ${f1s(D.T.b)} to <b>${f1s(D.nb)}</b>.`}}; }
+}
+function go(c){ fillUpTo(c); stopPlay(); S.ghost=null; S.ch=c; S.maxCh=Math.max(S.maxCh,c); P[c].enter(); $('panel').innerHTML=P[c].html(); P[c].wire(); update(); renderProg();
+  const titles=['The neighborhood','The sales','How far off?','Your misses','Your misses','Running every step again','Your line as it learns','The new listing'];
+  const hints=['Guess two, and your line prices the rest','Each house moves to the price it really sold for','How far each sale is from your line','Each miss, squared','','The line fills in as each step runs','Updates on every step','Set its size'];
+  $('cardsTitle').textContent=titles[c]; $('cardsHint').textContent=hints[c]; $('chapChip').textContent=`Chapter ${c+1} of 8`; }
+$('backBtn').onclick=()=>{ if(S.ch>0) go(S.ch-1); };
+$('nextBtn').onclick=()=>{ if(S.ch<7&&P[S.ch].done()){ go(S.ch+1); window.scrollTo({top:0,behavior:'smooth'}); } };
+function update(){ const fm=S.ch===0&&S.c1.i<2; document.body.classList.toggle('nomentor',true); document.body.classList.toggle('wide',(S.ch===0&&!fm)||S.ch===1||S.ch>=5); document.body.classList.toggle('sim',false); document.body.classList.toggle('showeq',(S.ch===0&&!fm)||S.ch>=4); document.body.classList.toggle('replay',S.ch===5); document.body.classList.toggle('nocalc',S.ch===7&&S.n8>=2); document.body.classList.toggle('c5',S.ch===3&&S.f.part===1); document.body.classList.toggle('c6',S.ch===4); document.body.classList.toggle('nochart',S.ch===2||(S.ch===3&&S.f.part===2)); const was=document.body.classList.contains('flashmode'); document.body.classList.toggle('flashmode',fm); if(fm&&(!was||!$('lockGuess'))) renderFlash();
+  renderChart(); if(S.ch===0&&!fm){ renderEq(S.first,'Your pricing line equation',!S.c1.line); renderC1Bar(); } else if(S.ch===1) renderC2Bar(); else if(S.ch===2) renderScore(); else if(S.ch===3){ if(S.f.part===1) renderC5Bar(); else renderTable(); } else if(S.ch===4){ renderEq(); renderPlug(); } else if(S.ch===5){ renderEq(S.it.L||S.first,'Run back all the steps you did, on the new line you found'); renderC6Bar(); } else if(S.ch===6){ renderEq(simL(),'Simulate: repeat the loop many times'); renderSimBar(); } else if(S.ch===7){ renderEq(BEST,'Your final line'); renderC8Bar(); } $('cards').innerHTML=cardsFor(); if(S.ch===7&&$('n8SizeR')) $('n8SizeR').oninput=e=>{ S.newSize=+e.target.value; n8Refresh(); }; P[S.ch].upd();
+  const d=P[S.ch].done(); const nb=$('nextBtn'); nb.disabled=S.ch===7||!d; nb.style.display=S.ch===7?'none':'';
+  $('hintline').textContent=S.ch===7?P[7].hint:d?'':P[S.ch].hint; $('backBtn').disabled=S.ch===0;
+  if(d&&S.ch<7&&S.maxCh===S.ch){ S.maxCh=S.ch+1; renderProg(); } }
+/* ---------- calculator ---------- */
+(function(){
+  let expr='', shown='0', last=null;
+  const KEYS=[['C','clr'],['⌫','back'],['÷','/'],['×','*'],['7'],['8'],['9'],['−','-'],['4'],['5'],['6'],['+','+'],['1'],['2'],['3'],['=','eq'],['0'],['00'],['.']];
+  const calc=$('calc'), keys=$('calcKeys');
+  keys.innerHTML=KEYS.map(([t,v])=>`<button data-k="${v??t}" class="${'+-*/'.includes(v??'_')?'op':v==='eq'?'eq':''}" ${v==='eq'?'style="grid-row:span 2;height:auto"':''}>${t}</button>`).join('');
+  const pretty=e=>e.replace(/\*/g,' × ').replace(/\//g,' ÷ ').replace(/-/g,' − ').replace(/\+/g,' + ');
+  const answerBox=()=>$('scIn')||$('n8In')||[$('pInm'),$('pInb')].find(e=>e&&!e.disabled)||null;
+  function paint(){ $('calcExpr').textContent=last!=null&&expr===''?'':pretty(expr); $('calcVal').textContent=shown;
+    $('calcUse').style.display=last!=null&&answerBox()?'':'none'; }
+  function evaluate(e){ if(!/^[0-9.+\-*/]+$/.test(e)) return null; try{ const v=Function('"use strict";return ('+e+')')(); return isFinite(v)?Math.round(v*1e6)/1e6:null; }catch(_){ return null; } }
+  function press(k){
+    if(k==='clr'){ expr=''; shown='0'; last=null; }
+    else if(k==='back'){ expr=expr.slice(0,-1); shown=expr?pretty(expr).trim().split(' ').pop()||'0':'0'; }
+    else if(k==='eq'){ const v=evaluate(expr); if(v!=null){ last=v; shown=v.toLocaleString('en-US'); expr=''; } else shown='?'; }
+    else { if(last!=null&&expr===''&&'+-*/'.includes(k)) expr=String(last); else if(last!=null&&expr==='') { last=null; }
+      expr+=k; shown=pretty(expr).trim().split(' ').pop()||k; }
+    paint(); }
+  keys.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) press(b.dataset.k); });
+  $('calcFab').onclick=()=>{ calc.classList.toggle('open'); paint(); };
+  $('calcClose').onclick=()=>calc.classList.remove('open');
+  $('calcUse').onclick=()=>{ const box=answerBox(); if(!box||last==null) return; box.value=String(last); box.dispatchEvent(new Event('input')); box.focus({preventScroll:true}); };
+  document.addEventListener('keydown',e=>{ if(!calc.classList.contains('open')||e.target.tagName==='INPUT') return;
+    const map={'Enter':'eq','=':'eq','Backspace':'back','Escape':null,'x':'*','X':'*'};
+    if(e.key==='Escape'){ calc.classList.remove('open'); return; }
+    const k=map[e.key]??(/^[0-9.+\-*/]$/.test(e.key)?e.key:undefined); if(k){ e.preventDefault(); press(k); } });
+})();
+let rt; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(update,80); });
+say('');
+go(0);
+</script>
+</body>
+</html>
