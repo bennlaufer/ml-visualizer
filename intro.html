@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Models Learn</title>
+<meta name="description" content="Every machine learning model learns with the same loop: predict, score, find the slope, update. Watch it run.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fbf6ee; --card:#fff; --ink:#1e2433; --soft:#5b6476; --faint:#9aa3b2; --rule:#ebe4d8;
+    --line:#4f46e5; --line-soft:#e0e7ff; --hi:#e11d48; --hi-soft:#ffe4e9; --lo:#d97706; --lo-soft:#fff1d6;
+    --best:#15803d; --best-soft:#dcfce7; --bot:#0d9488; --bot-soft:#ccfbf1; --accent:#f97316;
+    --c1:#4f46e5; --c2:#e11d48; --c3:#d97706; --c4:#0d9488;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; background:var(--bg); color:var(--ink); font-family:'Nunito',system-ui,sans-serif;}
+  body{overflow-x:hidden; line-height:1.5;}
+  h1,h2,h3,.disp{font-family:'Fredoka','Nunito',sans-serif; margin:0;}
+  .wrap{max-width:1040px; margin:0 auto; padding:28px 16px 72px;}
+  a{color:var(--line);}
+  .top{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .back{font-weight:800; font-size:14px; text-decoration:none; color:var(--soft);} .back:hover{color:var(--line);}
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Fredoka'; font-weight:600; font-size:17px;}
+  .card-w{background:var(--card); border:1px solid var(--rule); border-radius:18px; box-shadow:0 1px 0 rgba(30,36,51,.04),0 6px 20px -12px rgba(30,36,51,.18);}
+  #lead{font-family:'Fredoka'; font-weight:500; font-size:clamp(18px,2.6vw,23px); line-height:1.25; color:var(--ink);}
+  #lead{margin:22px 0 0; max-width:none;}
+  .eyebrow{font-family:'Fredoka'; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);}
+  .lead{color:var(--soft); font-weight:700; font-size:17px; max-width:640px; margin:10px 0 0;}
+  .stage{min-width:0;}
+  .slide{display:block; min-width:0; margin-top:56px;}
+  #slide-1{margin-top:0;}
+  #slide-2{margin-top:14px;}
+  .quote{margin:34px 0 0; padding:20px 24px; border-left:6px solid var(--accent); background:#fff7ed; border-radius:0 14px 14px 0; max-width:860px;}
+  .quote p{font-family:'Fredoka'; font-weight:500; font-size:clamp(22px,4vw,32px); line-height:1.25; color:var(--ink);}
+  .quote .ml{color:var(--line); font-weight:600;}
+  .quote cite{display:block; margin-top:6px; font-style:normal; font-weight:800; font-size:15px; color:var(--soft);}
+  .quote cite::before{content:"- ";}
+  h1{font-size:clamp(26px,4.5vw,36px); line-height:1.12; margin-top:44px;}
+  h2{font-size:clamp(24px,4vw,30px); line-height:1.15; margin-top:6px;}
+  p{margin:0;}
+  /* four-move cards */
+  .moves{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:22px;}
+  .move{padding:16px; display:flex; flex-direction:column; gap:8px; min-width:0; position:relative;}
+  .move .n{width:30px; height:30px; border-radius:50%; color:#fff; font-family:'Fredoka'; font-weight:600; display:flex; align-items:center; justify-content:center;}
+  .move h3{font-size:19px;}
+  .move .jargon{font-size:12px; font-weight:800; color:var(--soft); background:#f3efe7; border-radius:99px; padding:3px 10px; align-self:flex-start;}
+  .paren{font-weight:500; color:var(--soft); font-size:.8em;}
+  .move p{font-size:15px; font-weight:700; color:var(--soft);}
+  .move .q{font-family:'Fredoka'; font-size:14px; color:var(--ink); font-weight:500; border-top:1px dashed var(--rule); padding-top:8px; margin-top:auto;}
+  .loopback{position:relative; margin:0 auto; width:66.66%; height:58px; border:3px solid var(--line); border-top:0; border-radius:0 0 28px 28px; margin-top:0;}
+  .loopback::before{content:""; position:absolute; left:-9px; top:-4px; border:7px solid transparent; border-bottom:11px solid var(--line); border-top:0;}
+  .loopback .lbl{position:absolute; left:50%; bottom:-15px; transform:translateX(-50%); background:var(--bg); padding:3px 14px; font-family:'Fredoka'; font-weight:600; font-size:15px; color:var(--line); white-space:nowrap;}
+  /* demo */
+  .demo{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr); gap:16px; margin-top:22px; align-items:start;}
+  .pad{padding:14px;}
+  #chart{width:100%; display:block; user-select:none;}
+  #chart text{font-family:'Nunito',sans-serif;}
+  .controls{display:flex; flex-wrap:nowrap; gap:8px; align-items:center; margin-top:10px;}
+  .btn{font-family:'Nunito'; font-weight:800; font-size:14px; border-radius:12px; padding:9px 14px; border:2px solid var(--rule); background:#fff; color:var(--ink); cursor:pointer; transition:all .15s;}
+  .btn:hover:not(:disabled){border-color:#a5b4fc; color:var(--line);}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn.main{background:var(--line); border-color:var(--line); color:#fff;} .btn.main:hover:not(:disabled){background:#4338ca; color:#fff;}
+  .loop-svg{width:100%; display:block;}
+  .loop-svg text{font-family:'Fredoka',sans-serif;}
+  .node rect{fill:#fff; stroke:var(--rule); stroke-width:2; transition:all .25s;}
+  .node text{fill:var(--soft); font-size:15px; font-weight:600; transition:fill .25s;}
+  .node .num{fill:var(--faint); font-size:12px;}
+  .node.on rect{stroke-width:3;} .node.on text{fill:var(--ink);}
+  .node.on.k0 rect{fill:#eef2ff; stroke:var(--c1);} .node.on.k1 rect{fill:#fff1f3; stroke:var(--c2);}
+  .node.on.k2 rect{fill:#e8fbf8; stroke:var(--c4);}
+  .caption{margin-top:12px; border-radius:14px; padding:12px 14px; border:1.5px solid var(--rule); background:#fff; min-height:112px;}
+  .caption h3{font-size:18px;} .caption p{font-size:14.5px; font-weight:600; color:var(--soft); margin-top:4px;}
+  .caption .math{margin-top:8px; font-weight:800; font-size:13.5px; color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.55;}
+  .stats{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:12px;}
+  .stat{background:#faf6ee; border-radius:12px; padding:8px 10px;}
+  .stat small{display:block; font-size:11.5px; font-weight:800; color:var(--faint); text-transform:uppercase; letter-spacing:.04em;}
+  .stat b{font-family:'Fredoka'; font-size:20px; font-variant-numeric:tabular-nums;}
+  .legend{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12.5px; font-weight:700; color:var(--soft); margin-top:8px;}
+  .legend i{display:inline-block; vertical-align:middle; margin-right:5px;}
+  /* table */
+  .tbl{margin-top:22px; overflow:hidden;}
+  .row{display:grid; grid-template-columns:1.1fr 1.3fr 1.4fr 1.2fr; gap:0; border-top:1px solid var(--rule);}
+  .row:first-child{border-top:0;}
+  .row>div{padding:12px 14px; font-size:14px; font-weight:600; min-width:0; overflow-wrap:anywhere;}
+  .row.head>div{font-family:'Fredoka'; font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--accent); background:#fffaf2; font-weight:600;}
+  .row .m{font-family:'Fredoka'; font-size:15.5px; font-weight:600;}
+  .row.alt{background:#fcfaf6;}
+  .row small{display:block; color:var(--faint); font-weight:700; font-size:12px;}
+  /* checks */
+  .checks{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:22px;}
+  .col{padding:16px; min-width:0;}
+  .col h3{font-size:18px; display:flex; align-items:center; gap:8px;}
+  .dotk{width:12px; height:12px; border-radius:50%; display:inline-block;}
+  .col ul{margin:10px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px;}
+  .col li{font-size:14.5px; font-weight:600; color:var(--soft); line-height:1.45;}
+  .col li b{color:var(--ink);}
+  .col.g{border-top:5px solid var(--best);} .col.y{border-top:5px solid var(--lo);} .col.r{border-top:5px solid var(--c2);}
+  .cta{margin-top:56px; padding:22px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between; background:linear-gradient(180deg,#f6f5ff,#fff);}
+  .cta h3{font-size:22px;} .cta p{color:var(--soft); font-weight:700; font-size:15px; margin-top:2px;}
+  .go{display:inline-block; text-decoration:none; background:var(--line); color:#fff; font-weight:800; border-radius:12px; padding:11px 18px;} .go:hover{background:#4338ca;}
+  code,.mono{font-family:ui-monospace,Menlo,monospace; font-size:.92em; background:#f3efe7; padding:1px 6px; border-radius:6px;}
+  @media (max-width:900px){
+    .demo{grid-template-columns:minmax(0,1fr);}
+    .checks{grid-template-columns:minmax(0,1fr);}
+  }
+  @media (max-width:640px){
+    .plabel{display:none;}
+    .nav{gap:8px;}
+    .moves{grid-template-columns:minmax(0,1fr);}
+    .row{grid-template-columns:minmax(0,1fr);} .row.head{display:none;}
+    .row>div:not(:first-child)::before{content:attr(data-h) ": "; font-weight:800; color:var(--faint);}
+    .loopback{width:auto; height:auto; border:0; border-radius:14px; background:var(--line-soft); padding:10px 14px; text-align:center;}
+    .loopback::before{display:none;}
+    .loopback .lbl{position:static; transform:none; background:none; white-space:normal; padding:0;}
+  }
+  .gpop{transform-box:fill-box; transform-origin:center; animation:gpop .4s cubic-bezier(.3,1.6,.5,1) both;}
+  @keyframes gpop{from{transform:scale(0); opacity:0} to{transform:scale(1); opacity:1}}
+  .mdraw{stroke-dashoffset:0; animation:mdraw .45s ease-out both;}
+  @keyframes mdraw{from{stroke-dashoffset:var(--len)} to{stroke-dashoffset:0}}
+  .mlab{animation:mlab .35s ease-out both;}
+  @keyframes mlab{from{opacity:0; transform:translateX(-4px)} to{opacity:1; transform:none}}
+  .picks{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px;}
+  .pick{display:flex; align-items:center; gap:10px; background:#fff; border:2px solid var(--pc); border-radius:14px; padding:10px 16px; font-family:'Fredoka'; font-weight:500; font-size:18px;}
+  .pick b{width:26px; height:26px; border-radius:50%; background:var(--pc); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .models{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); column-gap:14px; row-gap:0; margin-top:18px;}
+  .models .mcard{margin-bottom:14px;}
+  .mcard{padding:16px; display:grid; grid-row:span 5; grid-template-rows:subgrid; row-gap:10px; min-width:0;}
+  .mcard h3{font-size:19px;}
+  .mrow{border-left:4px solid var(--rule); padding-left:10px;}
+  .mrow small{font-family:'Fredoka'; font-weight:600; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--soft); display:block;}
+  .mrow p{font-weight:700; font-size:14.5px; color:var(--ink); line-height:1.35;}
+  .mpanel .mrow:first-child small{color:var(--best);}
+  .mrow.eq small{color:var(--c1);}
+  .mrow.er small{color:var(--c2);}
+  .mcard .flag{font-size:12px; font-weight:800; background:var(--lo-soft); color:#92400e; border-radius:99px; padding:3px 10px; align-self:end; justify-self:start;}
+  @media (max-width:1000px){ .models{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:560px){ .models{grid-template-columns:minmax(0,1fr);} }
+  .mpanel{margin-top:14px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; animation:fadein .3s ease;}
+  .mpanel[hidden]{display:none;}
+  .mpanel .mrow{background:#fff; border:1px solid var(--rule); border-radius:14px; padding:12px 14px;}
+  .mpanel .mrow{display:flex; flex-direction:column; gap:10px; padding:16px 18px; min-height:210px;}
+  .mpanel .mrow p{font-family:'Fredoka'; font-weight:500; font-size:19px; line-height:1.3;}
+  .mpanel .mrow .mpic{margin-top:auto;}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:auto;}
+  .chip{font-family:'Fredoka'; font-weight:600; font-size:20px; background:#f1efff; color:var(--c1); border-radius:12px; padding:8px 16px;}
+  .chip.yes{background:#dcfce7; color:#166534;} .chip.no{background:#ffe4e9; color:#9f1239;}
+  .chip.g1{background:#e0e7ff; color:#4338ca;} .chip.g2{background:#ffedd5; color:#c2410c;} .chip.g3{background:#ccfbf1; color:#0f766e;}
+  .mpanel .formula{font-family:ui-monospace,Menlo,monospace; font-size:14.5px; font-weight:700; color:var(--c1);}
+  .mpic{display:block; width:100%; max-width:200px; margin-top:10px;}
+  .mpic.tree{max-width:260px;}
+  .mpanel .flag{grid-column:1/-1; justify-self:start; font-size:12.5px; font-weight:800; background:var(--lo-soft); color:#92400e; border-radius:99px; padding:3px 12px;}
+  @media (max-width:900px){ .mpanel{grid-template-columns:minmax(0,1fr);} }
+  .hcards{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-top:12px;}
+  .hcard{background:#fff; border:1px solid var(--rule); border-radius:14px; padding:6px 4px 8px; min-width:0; text-align:center;}
+  .hcard svg{width:100%; height:auto; display:block;}
+  .hcard .sz{font-family:'Fredoka'; font-weight:600; font-size:13px;}
+  .hcard .row{display:flex; justify-content:center; align-items:center; font-size:13px; font-weight:700; color:var(--faint); margin-top:3px; height:20px; padding:0 2px; white-space:nowrap;}
+  .hcard .v{font-weight:800; font-size:13px; animation:fadein .4s both;}
+  .hcard .v.r{color:var(--c1);} .hcard .v.s{color:var(--hi);}
+  .hcard .v.hi{color:#9f1239; background:var(--hi-soft); border-radius:6px; padding:1px 4px;} .hcard .v.lo{color:#92400e; background:var(--lo-soft); border-radius:6px; padding:1px 4px;}
+  @media (max-width:560px){ .hcards{grid-template-columns:repeat(5,minmax(78px,1fr)); overflow-x:auto;} }
+  .hdrop{animation:hfly 1.1s cubic-bezier(.25,.9,.3,1.08) both;}
+  @keyframes hfly{0%{transform:translate(var(--dx,0px),var(--dy,0px)) scale(var(--s,1)); opacity:0} 10%{opacity:1} 100%{transform:none; opacity:1}}
+  .tabs{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px;}
+  .tab{font-family:'Nunito'; font-weight:800; font-size:14px; border-radius:99px; padding:8px 16px; border:2px solid var(--rule); background:#fff; color:var(--soft); cursor:pointer; transition:all .15s;}
+  .tab:hover{border-color:#a5b4fc;} .tab.on{background:var(--line); border-color:var(--line); color:#fff;}
+  .trio{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:14px;}
+  .tcell{background:#fff; border:1px solid var(--rule); border-radius:16px; padding:14px 16px; border-top:5px solid var(--c1); min-width:0; animation:fadein .3s ease;}
+  .tcell small{font-family:'Fredoka'; font-weight:600; font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; display:block; margin-bottom:4px;}
+  .tcell p{font-weight:700; font-size:15px; color:var(--ink);}
+  .tcell .flag{display:inline-block; margin-top:8px; font-size:12px; font-weight:800; background:var(--lo-soft); color:#92400e; border-radius:99px; padding:2px 10px;}
+  @keyframes fadein{from{opacity:0} to{opacity:1}}
+  @media (max-width:900px){ .trio{grid-template-columns:minmax(0,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="10" fill="#4f46e5"/><path d="M7 25 L14 17 L19 21 L27 10" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="10" r="2.4" fill="#fff"/></svg>
+      ML Visualizer
+    </div>
+    <a class="back" href="index.html">&larr; All lessons</a>
+  </div>
+
+  <div class="stage" id="stage">
+  <section class="slide on" id="slide-1" data-i="0">
+  <blockquote class="quote" id="quote">
+    <p><b class="ml">Machine learning:</b> &ldquo;Field of study that gives computers the ability to learn without being explicitly programmed.&rdquo;</p>
+    <cite>Arthur Samuel</cite>
+  </blockquote>
+
+  <div class="heroline">
+    <p class="lead" id="lead">Almost every model learns the same way: three steps, on repeat.</p>
+  </div>
+  </section>
+
+
+  <section class="slide" id="slide-2" data-i="1"><div id="moves-section">
+    <div class="moves">
+      <div class="card-w move" id="move-1">
+        <div class="n" style="background:var(--c1)">1</div>
+        <h3>Predict</h3>
+        <p>Use the function to guess every answer.</p>
+      </div>
+      <div class="card-w move" id="move-2">
+        <div class="n" style="background:var(--c2)">2</div>
+        <h3>Assess predictions</h3>
+        <p>How far were the predictions from the actual values?</p>
+      </div>
+      <div class="card-w move" id="move-3">
+        <div class="n" style="background:var(--c4)">3</div>
+        <h3>Learn</h3>
+        <p>Adjust the function so predictions are closer to actual values.</p>
+      </div>
+    </div>
+    <div class="loopback" id="repeat-bar" aria-label="Arrow from step 3 back to step 1">
+      <span class="lbl">&#8635; Repeat until you are happy with the assessment</span>
+    </div>
+  </div></section>
+
+  <section class="slide" id="slide-3" data-i="2"><div id="demo-section">
+    <div class="eyebrow">Try it</div>
+    <h2>Watch a line learn house prices</h2>
+    <p class="lead" style="font-size:15.5px">The model is a line with two dials, <b>m</b> (steepness) and <b>b</b> (start). Press <b>Start</b> and watch the line.</p>
+
+    <div class="demo">
+      <div class="card-w pad" id="side-card">
+        <svg class="loop-svg" id="loop" viewBox="0 0 360 212" role="img" aria-label="The three steps in a loop with the current step highlighted">
+          <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b6ad9d"/></marker></defs>
+          <g stroke="#b6ad9d" stroke-width="2.5" fill="none" marker-end="url(#ah)">
+            <path d="M150 41 H 200"/><path d="M282 70 Q 282 112 238 134"/><path d="M122 150 Q 78 130 78 72"/>
+          </g>
+          <g class="node k0" id="n0"><rect x="14" y="14" width="136" height="54" rx="14"/><text class="num" x="30" y="34">1</text><text x="30" y="55">Predict</text></g>
+          <g class="node k1" id="n1"><rect x="200" y="14" width="146" height="54" rx="14"/><text class="num" x="216" y="34">2</text><text x="216" y="55">Assess</text></g>
+          <g class="node k2" id="n2"><rect x="108" y="140" width="144" height="54" rx="14"/><text class="num" x="124" y="160">3</text><text x="124" y="181">Learn</text></g>
+          <text x="180" y="108" text-anchor="middle" font-size="13" fill="#9aa3b2" font-weight="600" id="loopcount">loop 1</text>
+        </svg>
+        <div class="caption" id="caption"></div>
+        <div class="controls">
+          <button class="btn main" id="btn-next">Start &rarr;</button>
+          <button class="btn" id="btn-play">&#9654; Auto-play</button>
+          <button class="btn" id="btn-reset">Reset</button>
+        </div>
+      </div>
+      <div class="card-w pad" id="chart-card">
+        <svg id="chart" viewBox="0 0 560 360" role="img" aria-label="Five house sales and a line the model is fitting"></svg>
+                <div class="hcards" id="hcards"></div>
+        
+      </div>
+    </div>
+  </div></section>
+
+  <section class="slide" id="slide-4" data-i="3"><div id="swap-section">
+    <div class="eyebrow">Any model</div>
+    <h2>The model picks three things</h2>
+    <div class="picks" id="picks">
+      <div class="pick" style="--pc:var(--best)"><b>1</b> What it predicts</div>
+      <div class="pick" style="--pc:var(--c1)"><b>2</b> The function it predicts with</div>
+      <div class="pick" style="--pc:var(--c2)"><b>3</b> How it assesses predictions</div>
+    </div>
+    <div class="tabs" id="tabs" role="tablist">
+      <button class="tab" data-k="0" aria-expanded="false">Linear regression</button>
+      <button class="tab" data-k="1" aria-expanded="false">Logistic regression</button>
+      <button class="tab" data-k="2" aria-expanded="false">Decision tree</button>
+      <button class="tab" data-k="3" aria-expanded="false">K-means clustering</button>
+    </div>
+    <div class="mpanel" id="mpanel" hidden></div>
+  </div></section>
+  </div>
+
+<div class="card-w cta" id="cta">
+    <div><h3>Ready for real houses?</h3><p>Lesson 1 runs these steps by hand.</p></div>
+    <a class="go" href="linear-regression.html">Start Lesson 1 &rarr;</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const NS='http://www.w3.org/2000/svg';
+  // houses: x = size in 1,000 sq ft, y = price in $100k
+  const PTS=[[1,1.5],[2,2.3],[3,3.4],[4,3.7],[5,4.8]];
+  const M0=-0.5, B0=1.4, XC=3;
+  const S={m:M0,b:B0,phase:-1,iter:0,prev:null,hist:[],lr:0.2,dead:false,timer:null,raf:0,dropNow:false};
+  const px=x=>50+x/6*480, py=y=>320-y/6*300;
+  const fmt=(v,d=2)=>(Math.abs(v)<5e-3?0:v).toFixed(d);
+  const COL=['var(--c1)','var(--c2)','var(--c4)'];
+
+  function calc(m,b){
+    const n=PTS.length;
+    const pred=PTS.map(p=>m*(p[0]-XC)+b);
+    const miss=PTS.map((p,i)=>pred[i]-p[1]);
+    const loss=miss.reduce((a,e)=>a+e*e,0)/n;
+    const gm=2/n*miss.reduce((a,e,i)=>a+e*(PTS[i][0]-XC),0);
+    const gb=2/n*miss.reduce((a,e)=>a+e,0);
+    return {pred,miss,loss,gm,gb};
+  }
+  function el(tag,attrs,parent){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e; }
+
+  function drawChart(){
+    const svg=$('chart'); svg.innerHTML='';
+    const defs=el('defs',{},svg); const cp=el('clipPath',{id:'clip'},defs); el('rect',{x:50,y:20,width:480,height:300},cp);
+    // grid + axes
+    for(let y=0;y<=6;y++){ el('line',{x1:50,x2:530,y1:py(y),y2:py(y),stroke:'#efe8db','stroke-width':1},svg); if(y>0&&y<6){const t=el('text',{x:42,y:py(y)+4,'text-anchor':'end','font-size':12,fill:'#9aa3b2','font-weight':700},svg); t.textContent='$'+(y*100)+'k';} }
+    for(let x=1;x<=5;x++){ const t=el('text',{x:px(x),y:340,'text-anchor':'middle','font-size':12,fill:'#9aa3b2','font-weight':700},svg); t.textContent=x+'k sq ft'; }
+    el('line',{x1:50,x2:530,y1:320,y2:320,stroke:'#d9cfbd','stroke-width':2},svg);
+    const cur=calc(S.m,S.b);
+    const g=el('g',{'clip-path':'url(#clip)'},svg);
+    // ghost of previous line (update phase)
+    if(S.phase===2&&S.prev){ el('line',{id:'ghost-line',x1:px(0),y1:py(S.prev.b-XC*S.prev.m),x2:px(6),y2:py(S.prev.b+XC*S.prev.m),stroke:'#b6ad9d','stroke-width':3,'stroke-dasharray':'7 6','stroke-linecap':'round'},g); }
+    // misses
+    if(S.phase===1){
+      PTS.forEach((p,i)=>{ const hi=cur.miss[i]>0, len=Math.abs(py(p[1])-py(cur.pred[i])); const ln=el('line',{id:'miss-'+i,x1:px(p[0]),x2:px(p[0]),y1:py(p[1]),y2:py(cur.pred[i]),stroke:hi?'#e11d48':'#d97706','stroke-width':5,opacity:.85,class:'mdraw'},g); ln.style.setProperty('--len',len); ln.style.strokeDasharray=len+' '+len; ln.style.animationDelay=(5.5+i*0.8)+'s'; });
+    }
+    // model line
+    const ends=(m,b)=>[py(b-XC*m),py(b+XC*m)];
+    const to=ends(S.m,S.b);
+    const ml=el('line',{id:'model-line',x1:px(0),y1:to[0],x2:px(6),y2:to[1],stroke:'#4f46e5','stroke-width':4,'stroke-linecap':'round'},g);
+    cancelAnimationFrame(S.raf);
+    if(S.phase===2&&S.prev){
+      const from=ends(S.prev.m,S.prev.b), t0=performance.now(), dur=2000;
+      ml.setAttribute('y1',from[0]); ml.setAttribute('y2',from[1]);
+      const tick=now=>{ const k=Math.min(1,(now-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+        ml.setAttribute('y1',from[0]+(to[0]-from[0])*e); ml.setAttribute('y2',from[1]+(to[1]-from[1])*e);
+        if(k<1) S.raf=requestAnimationFrame(tick); };
+      S.raf=requestAnimationFrame(tick);
+    }
+    // predictions (open circles on line)
+    const miniHouse=(parent,i,cx,cy,guess)=>{
+      const C=guess?{fill:'#e0e7ff',stroke:'#4f46e5',roof:'#a5b4fc',door:'#818cf8',dot:'#4f46e5',dash:'3 2'}:{fill:'#ffe4e9',stroke:'#e11d48',roof:'#fda4af',door:'#fb7185',dot:'#e11d48',dash:''};
+      el('rect',{x:cx-11,y:cy-17,width:22,height:14,fill:C.fill,stroke:C.stroke,'stroke-width':2,'stroke-dasharray':C.dash,rx:1},parent);
+      el('polygon',{points:(cx-14)+','+(cy-16)+' '+cx+','+(cy-28)+' '+(cx+14)+','+(cy-16),fill:C.roof,stroke:C.stroke,'stroke-width':2,'stroke-dasharray':C.dash,'stroke-linejoin':'round'},parent);
+      el('rect',{x:cx-3,y:cy-11,width:6,height:8,fill:C.door},parent);
+      el('circle',{cx:cx,cy:cy,r:5,fill:'#fff',stroke:C.dot,'stroke-width':3},parent); };
+    if(S.phase===0||S.phase===1){ PTS.forEach((p,i)=>{ const gg=el('g',{id:'guess-'+i,class:S.phase===0?'hdrop':''},svg); const ty=py(Math.max(cur.pred[i],0.25)); if(S.phase===0){ gg.style.animationDelay=(i*0.9)+'s'; gg.dataset.tx=px(p[0]); gg.dataset.ty=ty; } miniHouse(gg,i,px(p[0]),ty,true); }); }
+    // real dots
+    if(S.phase===1) PTS.forEach((p,i)=>{
+      const gg=el('g',{id:'sale-'+i,class:S.phase===1?'hdrop':''},svg); if(S.phase===1){ gg.style.animationDelay=(0.6+i*0.9)+'s'; gg.dataset.tx=px(p[0]); gg.dataset.ty=py(p[1]); }
+      miniHouse(gg,i,px(p[0]),py(p[1]),false); });
+    // labels in miss phase
+    if(S.phase===1){ PTS.forEach((p,i)=>{ const my=(py(p[1])+py(cur.pred[i]))/2; const short=Math.abs(py(p[1])-py(cur.pred[i]))<48; const t=el('text',{x:px(p[0])+(short?20:0),y:my+4,'text-anchor':short?'start':'middle','paint-order':'stroke',stroke:'#fff','stroke-width':5,'stroke-linejoin':'round','font-size':12.5,'font-weight':800,fill:cur.miss[i]>0?'#9f1239':'#92400e',class:'mlab'},svg); t.style.animationDelay=(5.9+i*0.8)+'s'; t.textContent=(cur.miss[i]>0?'+':'-')+'$'+Math.round(Math.abs(cur.miss[i])*100)+'k'; }); }
+  }
+
+  const CAP=[
+    ()=>({t:'Step 1: Predict', c:COL[0], p:'One house at a time, the model places a guess for its price on the line.', m:''}),
+    ()=>({t:'Step 2: Assess predictions', c:COL[1], p:'The real sold houses are plotted first. Then we measure the gap for each one. That gap is the error.', m:''}),
+    ()=>({t:'Step 3: Learn', c:COL[2], p:'Adjust the function so predictions land closer to the actual values. The dashed line is where we were.', m:''})
+  ];
+
+  const HC=[['#f6bd60','#c2703d'],['#a7c4a0','#5b7f61'],['#f5cac3','#b5656b'],['#9ec5e8','#4a6f99'],['#e9d8a6','#9b7b3a']];
+  function houseSVG(i){ const f=i/4, bw=34+f*40, bh=21+f*12, x0=46-bw/2, yb=62, peak=yb-bh-13-f*6; let w=''; const k=2+Math.round(f*2);
+    for(let j=0;j<k;j++){ const cx=x0+bw*(j+.5)/k; if(Math.abs(cx-46)<7) continue; w+='<rect x="'+(cx-3.5)+'" y="'+(yb-bh+5)+'" width="7" height="6.5" rx="1" fill="#fff" stroke="#1e2433" stroke-opacity=".25"/>'; }
+    return '<svg viewBox="0 0 100 70" aria-hidden="true"><ellipse cx="50" cy="63" rx="48" ry="3.5" fill="#e9e2d4"/><rect x="'+x0+'" y="'+(yb-bh)+'" width="'+bw+'" height="'+bh+'" fill="'+HC[i][0]+'" stroke="#1e2433" stroke-opacity=".2"/><polygon points="'+(x0-4)+','+(yb-bh+1)+' 46,'+peak+' '+(x0+bw+4)+','+(yb-bh+1)+'" fill="'+HC[i][1]+'"/><rect x="42.5" y="'+(yb-12)+'" width="7" height="12" rx="1" fill="#7c4a2d"/>'+w+'</svg>'; }
+  function drawHouses(){ const c=calc(S.m,S.b), ph=S.phase;
+    const money=v=>(v<0?'-':'')+'$'+Math.abs(Math.round(v*100))+'k';
+    const row=(cls,label,val,delay)=>'<div class="row">'+(val?'<b class="v '+cls+'" style="animation-delay:'+delay+'s">'+val+'</b>':'')+'</div>';
+    $('hcards').innerHTML=PTS.map((p,i)=>{
+      const land=0.6+i*0.9+0.8;
+      const pred=(ph===0||ph===1)?row('r','Prediction:',money(c.pred[i]),ph===0?i*0.9+0.8:0):row('','Prediction:','',0);
+      const act=ph===1?row('s','Actual:',money(p[1]),ph===1?land:0):row('','Actual:','',0);
+      const e=c.miss[i];
+      const diff=ph===1?row(e>0?'hi':'lo','Difference:',(e>0?'+':'-')+'$'+Math.round(Math.abs(e)*100)+'k',5.9+i*0.8):row('','Difference:','',0);
+      return '<div class="hcard" id="house-'+i+'">'+houseSVG(i)+'<div class="sz">'+p[0]+',000 sq ft</div>'+pred+act+diff+'</div>'; }).join(''); }
+  function render(){
+    drawChart(); drawHouses();
+    /* send each animated house flying from its card to its spot on the graph */
+    const cs=$('chart').getBoundingClientRect(), k=cs.width/560;
+    document.querySelectorAll('#chart .hdrop').forEach(gg=>{ const i=+gg.id.split('-')[1], cardSvg=document.querySelector('#house-'+i+' svg'); if(!cardSvg||!k) return;
+      const r=cardSvg.getBoundingClientRect(), tx=+gg.dataset.tx, ty=+gg.dataset.ty;
+      gg.style.setProperty('--dx',(((r.left+r.width/2-cs.left)/k)-tx)+'px'); gg.style.setProperty('--dy',(((r.top+r.height*0.85-cs.top)/k)-ty)+'px'); gg.style.setProperty('--s',Math.max(1,Math.min(3,(r.width*0.6/k)/28))); });
+    for(let i=0;i<3;i++) $('n'+i).classList.toggle('on',i===S.phase);
+    const cap=S.phase<0?{t:'Ready',c:'var(--soft)',p:'Press Start. The model will place a guess for each house on its line.',m:''}:CAP[S.phase](); const box=$('caption');
+    box.style.borderColor=['#ebe4d8','#4f46e5','#e11d48','#0d9488'][S.phase+1];
+    box.innerHTML='<h3 style="color:'+cap.c+'">'+cap.t+'</h3><p>'+cap.p+'</p>'+(cap.m?'<div class="math">'+cap.m+'</div>':'');
+    $('loopcount').textContent='loop '+(S.iter+1);
+    $('btn-next').innerHTML=S.phase<0?'Start &rarr;':'Next step &rarr;'; $('btn-next').disabled=S.dead; $('btn-play').disabled=S.dead;
+  }
+
+  function applyUpdate(){
+    const c=calc(S.m,S.b);
+    S.prev={m:S.m,b:S.b,gm:c.gm,gb:c.gb,lr:S.lr};
+    S.m-=S.lr*c.gm; S.b-=S.lr*c.gb;
+    const nl=calc(S.m,S.b).loss;
+    S.hist.push(nl);
+    if(!isFinite(nl)||nl>200){ S.dead=true; stop(); }
+  }
+  function next(){
+    if(S.dead) return;
+    const was=S.phase; S.dropNow=(was===-1);
+    S.phase=(S.phase+1)%3;
+    if(S.phase===2) applyUpdate();
+    if(S.phase===0&&was===2){ S.iter++; S.prev=null; }
+    render();
+  }
+  function stop(){ if(S.timer){ clearTimeout(S.timer); S.timer=null; } $('btn-play').innerHTML='&#9654; Auto-play'; }
+  function reset(){ stop(); Object.assign(S,{m:M0,b:B0,phase:-1,iter:0,prev:null,dead:false,dropNow:false,hist:[calc(M0,B0).loss]}); render(); }
+
+  $('btn-next').onclick=()=>{ stop(); next(); };
+    $('btn-reset').onclick=reset;
+  const HOLD=[6000,10200,2300]; /* how long each step's animation needs before auto-play moves on */
+  function tickPlay(){ if(!S.timer) return; next(); const h=S.hist;
+    if(S.dead||(S.phase===2&&h.length>2&&Math.abs(h[h.length-1]-h[h.length-2])<1e-4)){ stop(); return; }
+    S.timer=setTimeout(tickPlay,HOLD[S.phase]); }
+  $('btn-play').onclick=()=>{ if(S.timer){ stop(); return; } $('btn-play').innerHTML='&#10074;&#10074; Pause'; S.timer=1; tickPlay(); };
+
+  const AX='<line x1="8" y1="62" x2="152" y2="62" stroke="#e1d8c7" stroke-width="2"/>';
+  const PIC=[
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="A straight line through points">'+AX+'<line x1="10" y1="54" x2="150" y2="12" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round"/><g fill="#1e2433"><circle cx="30" cy="52" r="3.5"/><circle cx="62" cy="38" r="3.5"/><circle cx="92" cy="36" r="3.5"/><circle cx="128" cy="18" r="3.5"/></g></svg>',
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="An S-shaped curve between two groups">'+AX+'<path d="M10 56 C 60 56, 70 10, 80 10 S 110 10, 150 10" stroke="#4f46e5" stroke-width="3.5" fill="none" stroke-linecap="round" transform="translate(0 0)"/><g fill="#e11d48"><circle cx="24" cy="56" r="3.5"/><circle cx="46" cy="56" r="3.5"/></g><g fill="#16a34a"><circle cx="116" cy="10" r="3.5"/><circle cx="138" cy="10" r="3.5"/></g></svg>',
+    '<svg viewBox="0 0 220 120" class="mpic tree" role="img" aria-label="A small decision tree"><g stroke="#c7c2ff" stroke-width="3"><line x1="110" y1="26" x2="62" y2="62"/><line x1="110" y1="26" x2="162" y2="62"/><line x1="62" y1="70" x2="34" y2="102"/><line x1="62" y1="70" x2="92" y2="102"/></g><rect x="70" y="8" width="80" height="26" rx="8" fill="#4f46e5"/><text x="110" y="26" font-size="12" font-family="Nunito" font-weight="800" fill="#fff" text-anchor="middle">size &gt; 2k?</text><rect x="26" y="56" width="72" height="24" rx="8" fill="#eef2ff" stroke="#a5b4fc"/><text x="62" y="72" font-size="11" font-family="Nunito" font-weight="800" fill="#4f46e5" text-anchor="middle">beds &gt; 2?</text><rect x="132" y="56" width="60" height="24" rx="8" fill="#dcfce7"/><text x="162" y="72" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$450k</text><rect x="6" y="96" width="56" height="22" rx="8" fill="#dcfce7"/><text x="34" y="111" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$220k</text><rect x="64" y="96" width="56" height="22" rx="8" fill="#dcfce7"/><text x="92" y="111" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$300k</text></svg>',
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Two groups of points with a center each"><g fill="#a5b4fc"><circle cx="30" cy="22" r="3.5"/><circle cx="44" cy="34" r="3.5"/><circle cx="26" cy="42" r="3.5"/><circle cx="48" cy="18" r="3.5"/></g><g fill="#fdba74"><circle cx="112" cy="40" r="3.5"/><circle cx="130" cy="28" r="3.5"/><circle cx="124" cy="54" r="3.5"/><circle cx="144" cy="44" r="3.5"/></g><circle cx="37" cy="29" r="7" fill="none" stroke="#4f46e5" stroke-width="3"/><circle cx="127" cy="42" r="7" fill="none" stroke="#d97706" stroke-width="3"/></svg>'
+  ];
+  const R='#e11d48';
+  const SOL=[
+    '<div class="chips"><span class="chip">$320k</span><span class="chip">$410k</span><span class="chip">$190k</span></div>',
+    '<div class="chips"><span class="chip yes">Yes</span><span class="chip no">No</span></div>',
+    '<div class="chips"><span class="chip">$320k</span><span class="chip yes">Yes</span><span class="chip no">No</span></div>',
+    '<div class="chips"><span class="chip g1">Group 1</span><span class="chip g2">Group 2</span><span class="chip g3">Group 3</span></div>'
+  ];
+  const ERR=[
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Misses between points and the line">'+AX+'<line x1="10" y1="54" x2="150" y2="12" stroke="#c7c2ff" stroke-width="3" stroke-linecap="round"/><g stroke="'+R+'" stroke-width="3.5" stroke-linecap="round"><line x1="30" y1="57" x2="30" y2="48"/><line x1="62" y1="28" x2="62" y2="38"/><line x1="92" y1="41" x2="92" y2="29"/><line x1="128" y1="8" x2="128" y2="19"/></g><g fill="#1e2433"><circle cx="30" cy="57" r="3.5"/><circle cx="62" cy="28" r="3.5"/><circle cx="92" cy="41" r="3.5"/><circle cx="128" cy="8" r="3.5"/></g></svg>',
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Misses between points and the S-curve">'+AX+'<path d="M10 56 C 60 56, 70 10, 80 10 S 110 10, 150 10" stroke="#c7c2ff" stroke-width="3" fill="none" stroke-linecap="round"/><g stroke="'+R+'" stroke-width="3.5" stroke-linecap="round"><line x1="46" y1="56" x2="46" y2="55"/><line x1="100" y1="10" x2="100" y2="10.5"/><line x1="70" y1="56" x2="70" y2="26"/></g><g fill="#e11d48"><circle cx="24" cy="56" r="3.5"/><circle cx="46" cy="56" r="3.5"/><circle cx="70" cy="56" r="3.5"/></g><g fill="#16a34a"><circle cx="116" cy="10" r="3.5"/><circle cx="138" cy="10" r="3.5"/><circle cx="100" cy="10" r="3.5"/></g></svg>',
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Misses between points and the step line">'+AX+'<path d="M10 50 H64 V30 H104 V12 H150" stroke="#c7c2ff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><g stroke="'+R+'" stroke-width="3.5" stroke-linecap="round"><line x1="24" y1="40" x2="24" y2="50"/><line x1="48" y1="58" x2="48" y2="50"/><line x1="84" y1="42" x2="84" y2="30"/><line x1="122" y1="4" x2="122" y2="12"/></g><g fill="#1e2433"><circle cx="24" cy="40" r="3.5"/><circle cx="48" cy="58" r="3.5"/><circle cx="84" cy="42" r="3.5"/><circle cx="122" cy="4" r="3.5"/></g></svg>',
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Distances from points to their group center"><g stroke="'+R+'" stroke-width="2.5" stroke-dasharray="4 3" stroke-linecap="round"><line x1="30" y1="22" x2="37" y2="29"/><line x1="44" y1="34" x2="37" y2="29"/><line x1="26" y1="42" x2="37" y2="29"/><line x1="48" y1="18" x2="37" y2="29"/><line x1="112" y1="40" x2="127" y2="42"/><line x1="130" y1="28" x2="127" y2="42"/><line x1="124" y1="54" x2="127" y2="42"/><line x1="144" y1="44" x2="127" y2="42"/></g><g fill="#a5b4fc"><circle cx="30" cy="22" r="3.5"/><circle cx="44" cy="34" r="3.5"/><circle cx="26" cy="42" r="3.5"/><circle cx="48" cy="18" r="3.5"/></g><g fill="#fdba74"><circle cx="112" cy="40" r="3.5"/><circle cx="130" cy="28" r="3.5"/><circle cx="124" cy="54" r="3.5"/><circle cx="144" cy="44" r="3.5"/></g><circle cx="37" cy="29" r="6" fill="none" stroke="#4f46e5" stroke-width="3"/><circle cx="127" cy="42" r="6" fill="none" stroke="#d97706" stroke-width="3"/></svg>'
+  ];
+  const MODELS=[
+    ['How much? A number, like a price.','A straight line','The average miss, where big misses count extra',''],
+    ['Yes or no? Will it sell above asking?','A line bent into an S-shape','Confident and wrong gets punished the most',''],
+    ['A number or a yes/no.','A chain of yes-or-no questions','How far off each group is, or how mixed it is',''],
+    ['Which groups are hiding in my data?','Group centers, each point joins the closest one','Total distance from each point to its center','K-means is unsupervised, which means there is no target you are trying to predict, like a housing price.']
+  ];
+  let openK=-1;
+  function openModel(k){
+    openK=(k===openK)?-1:k;
+    document.querySelectorAll('.tab').forEach(t=>{ const on=+t.dataset.k===openK; t.classList.toggle('on',on); t.setAttribute('aria-expanded',on); });
+    const box=$('mpanel');
+    if(openK<0){ box.hidden=true; box.innerHTML=''; return; }
+    const m=MODELS[openK];
+    box.innerHTML='<div class="mrow" id="mrow-solves"><small>What it predicts</small><p>'+m[0]+'</p>'+SOL[openK]+'</div><div class="mrow eq" id="mrow-eq"><small>Function</small>'+(m[1]?'<p>'+m[1]+'</p>':'')+PIC[openK]+'</div><div class="mrow er" id="mrow-err"><small>Predictions assessment</small><p>'+m[2]+'</p>'+ERR[openK]+'</div>'+(m[3]?'<span class="flag">'+m[3]+'</span>':'');
+    box.hidden=false; box.style.animation='none'; box.offsetHeight; box.style.animation='';
+  }
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>openModel(+t.dataset.k));
+
+  reset();
+
+})();
+</script>
+</body>
+</html>

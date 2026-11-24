@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bidding War Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  :root{
+    --bg:#fbf6ee; --card:#ffffff; --ink:#1e2433; --soft:#5b6476; --faint:#9aa3b2; --rule:#ebe4d8;
+    --line:#4f46e5; --line-soft:#e0e7ff; --hi:#e11d48; --hi-soft:#ffe4e9;
+    --lo:#d97706; --lo-soft:#fff1d6; --best:#15803d; --best-soft:#dcfce7;
+    --yes:#16a34a; --no:#f97316; --accent:#f97316;
+  }
+  html,body{background:var(--bg); color:var(--ink); font-family:'Nunito',system-ui,sans-serif;}
+  body{overflow-x:hidden; padding-bottom:84px;}
+  h1,h2,h3,.disp{font-family:'Fredoka','Nunito',sans-serif;}
+  .card-w{background:var(--card); border:1px solid var(--rule); border-radius:18px; box-shadow:0 1px 0 rgba(30,36,51,.04),0 6px 20px -12px rgba(30,36,51,.18);}
+  /* progress */
+  .prog{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px;}
+  .pstep{display:flex; flex-direction:column; gap:5px; align-items:flex-start; background:none; border:0; padding:0; text-align:left; cursor:pointer; color:var(--faint); font-size:12px; font-weight:700; min-width:0;}
+  .pbar{height:6px; width:100%; border-radius:99px; background:#e7dfd1; overflow:hidden;}
+  .pbar i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .4s;}
+  .pstep.done .pbar i{width:100%;}
+  .pstep.cur .pbar i{width:100%; background:var(--line);}
+  .pstep.done{color:var(--soft);} .pstep.cur{color:var(--line);}
+  .plabel{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  /* chart */
+  #chart{width:100%; display:block; user-select:none; -webkit-user-select:none;}
+  #chart text{font-family:'Nunito',sans-serif;}
+  .fadein{animation:fadein .5s ease;} @keyframes fadein{from{opacity:0} to{opacity:1}}
+  .fade-in{animation:fadein .4s ease both;}
+  .popin{animation:popin .45s cubic-bezier(.3,1.6,.5,1) both;} @keyframes popin{from{opacity:0; transform:scale(.4)} to{opacity:1; transform:none}}
+  @keyframes shake{25%{transform:translateX(-4px)} 75%{transform:translateX(4px)}}
+  @keyframes blink{50%{opacity:.35}} .blink{animation:blink 1.2s ease-in-out infinite;}
+  @keyframes popv{0%{transform:scale(.5); opacity:0} 100%{transform:scale(1); opacity:1}}
+  /* house cards */
+  .cards{display:flex; gap:10px; overflow-x:auto; padding:2px 2px 8px; scroll-snap-type:x mandatory;}
+  .hcard{flex:0 0 158px; scroll-snap-align:start; background:var(--card); border:1px solid var(--rule); border-radius:16px; padding:10px 12px 12px; display:flex; flex-direction:column; gap:4px; transition:transform .15s, box-shadow .15s, border-color .15s;}
+  .hcard.tap{cursor:pointer;}
+  .hcard.tap:hover{transform:translateY(-2px); border-color:#c7c2ff; box-shadow:0 8px 20px -14px rgba(79,70,229,.6);}
+  .hcard.cur{border-color:var(--line); box-shadow:0 0 0 3px #e0e7ff;}
+  .hcard.wrongpick{border-color:var(--hi); animation:shake .35s;}
+  @media (min-width:1024px){ .cards{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); overflow:visible;} .hcard{flex:auto; padding:8px 8px 10px;} }
+  .hsvg{width:100%; height:70px; display:block;}
+  .hsize{font-family:'Fredoka'; font-weight:600; font-size:14.5px;}
+  .hrow{display:flex; justify-content:space-between; align-items:baseline; font-size:12.5px; color:var(--soft); font-weight:700; gap:4px;}
+  .hrow b{font-size:14.5px; color:var(--ink); font-weight:800;}
+  .hrow b.g{color:var(--line);}
+  .miss{font-size:12px; font-weight:800; border-radius:10px; padding:4px 7px; margin-top:2px; line-height:1.3;}
+  .miss.hi{background:var(--hi-soft); color:#9f1239;} .miss.lo{background:var(--lo-soft); color:#92400e;} .miss.ok{background:var(--best-soft); color:#166534;} .miss.nil{background:#f4efe6; color:var(--faint);}
+  .ytag{display:inline-block; border-radius:99px; padding:1px 8px; font-size:11.5px; font-weight:800;}
+  .ytag.y{background:#dcfce7; color:#166534;} .ytag.n{background:#ffedd5; color:#9a3412;}
+  /* panel */
+  .ptitle{font-family:'Fredoka'; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);}
+  .phead{font-family:'Fredoka'; font-size:24px; font-weight:600; line-height:1.15;}
+  .task{font-size:14.5px; color:var(--soft); font-weight:600;} .task b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; padding:4px 10px; border-radius:99px; background:#f3efe7; color:var(--soft);}
+  .choice{border:2px solid var(--rule); background:#fff; border-radius:14px; padding:9px 10px; font-weight:800; font-size:14px; cursor:pointer; transition:all .15s; text-align:center; line-height:1.25;}
+  .choice:hover:not(:disabled){border-color:#a5b4fc;} .choice:disabled{cursor:default;}
+  .choice.right{border-color:var(--best); background:var(--best-soft); color:#166534;}
+  .choice.wrong{border-color:var(--hi); background:var(--hi-soft); color:#9f1239; animation:shake .35s;}
+  .navrow{display:flex; gap:8px; align-items:center; justify-content:space-between; border-top:1px solid var(--rule); padding-top:12px; margin-top:auto;}
+  .hintline{font-size:12.5px; color:var(--faint); font-weight:700; text-align:center; flex:1;}
+  .btn-main{background:var(--line); color:#fff; border:0;} .btn-main:hover{background:#4338ca;}
+  .btn-main:disabled,.btn-main[disabled]{background:#e7e2d9 !important; color:#a39a8b !important; border:0;}
+  input[type=range]{accent-color:var(--line);}
+  .preset{font-size:12.5px; font-weight:800; padding:6px 10px; border-radius:99px; border:1.5px solid var(--rule); background:#fff; cursor:pointer;}
+  .preset:hover{border-color:var(--line);} .preset.on{background:var(--line); color:#fff; border-color:var(--line);}
+  .tag{border-radius:14px; padding:10px 12px; border:1px solid var(--rule);}
+  .tabnum{font-variant-numeric:tabular-nums;}
+  .slabel{font-size:12px; font-weight:800; color:var(--soft); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;}
+  .mathbox{background:#f6f5ff; border:1px solid #e0e7ff; border-radius:12px; padding:10px 12px; font-weight:700; font-size:14px; line-height:1.6;}
+  .namebox{margin-top:12px; border-radius:16px; padding:14px 16px; background:#f6f5ff; border:1px solid #e0e7ff;}
+  .check{display:flex; gap:10px; align-items:flex-start; font-size:14px; font-weight:700; color:var(--soft);}
+  .check i{flex:none; width:20px; height:20px; border-radius:50%; border:2px solid var(--rule); background:#fff; display:grid; place-items:center; font-style:normal; font-size:12px; color:#fff; margin-top:1px;}
+  .check.on{color:#166534;} .check.on i{background:var(--yes); border-color:var(--yes);}
+  .hdots{display:flex; gap:6px;} .hdots i{width:26px; height:6px; border-radius:3px; background:#e7dccb;} .hdots i.on{background:var(--line);} .hdots i.cur{background:#a5b4fc;}
+  .cm{color:#7c3aed;} .cb{color:#0891b2;}
+  .ansbox{display:inline-flex; align-items:center; gap:2px; border:2px solid var(--rule); border-radius:12px; padding:5px 10px; background:#fff; font-weight:800; font-size:16px; color:var(--soft);}
+  .ansbox:focus-within{border-color:var(--line);}
+  .ansbox input{width:72px; border:0; outline:0; font:inherit; color:var(--ink); text-align:center; background:transparent;}
+  .ansbox.shake{animation:shake .3s;}
+  .ans{width:84px; border:2px solid var(--rule); border-radius:10px; padding:5px 8px; font:inherit; text-align:center; background:#fff;}
+  .ans:focus{outline:0; border-color:var(--line);} .ans.ok{border-color:#16a34a; background:#dcfce7; color:#166534;} .ans.bad{border-color:var(--hi); animation:shake .3s;}
+  .plugrow{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14.5px;}
+  /* equation strip */
+  #eqBar{display:none;} body.showeq #eqBar{display:block;}
+  .eqstrip{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 16px; padding:2px 4px 10px; margin-bottom:4px; border-bottom:1px dashed var(--rule);}
+  .eqright{display:flex; flex-direction:column; align-items:flex-end; gap:2px;}
+  .eqline{font-size:22px; font-weight:600; line-height:1.15; white-space:nowrap; word-spacing:2px;}
+  .eqcap{font-size:11px; font-weight:800; color:var(--soft);}
+  .slot{border-radius:10px; padding:0 4px; margin:0 -4px; transition:background .3s, box-shadow .3s;}
+  .glow-m{background:#ede9fe; box-shadow:0 0 0 3px #c4b5fd;} .glow-b{background:#cffafe; box-shadow:0 0 0 3px #67e8f9;}
+  .flynum{position:fixed; z-index:70; font-family:'Fredoka'; font-weight:600; pointer-events:none; transition:transform .8s cubic-bezier(.5,0,.2,1), opacity .2s ease .75s; transform-origin:0 0;}
+  /* table */
+  .dtab{table-layout:fixed; min-width:600px;} .dtab th,.dtab td{padding:8px 8px; text-align:right; border-bottom:1px dashed var(--rule); white-space:nowrap;} .dtab th{font-weight:800;} .dtab .tl{text-align:left;}
+  .dtab .avg td{border-top:2px solid var(--rule); border-bottom:0;} .dtab .hl{background:#faf9ff;}
+  .cell{opacity:0; display:inline-block; transition:opacity .25s;} .cell.on{opacity:1;}
+  .cell.res{animation:popv .32s cubic-bezier(.3,1.5,.6,1);}
+  .avgv{font-family:'Fredoka'; font-weight:600; font-size:24px; opacity:0; transition:opacity .4s;} .avgv.on{opacity:1;}
+  /* layout modes */
+  #scoreStage{display:none;} body.nochart #scoreStage{display:block;} body.nochart #chartCard, body.nochart #panelWrap, body.nochart #cardsSec{display:none;}
+  body.nochart #mainGrid, body.wide #mainGrid{grid-template-columns:minmax(0,1fr);}
+  body.wide #panelWrap{display:none;}
+  body.nocards #cardsSec{display:none;}
+  body.c8 .cards{display:flex; justify-content:center; overflow:visible;}
+  body.c8 .cards .hcard{flex:0 0 280px;}
+  #cardsSec{grid-column:1/-1; order:2; min-width:0;}
+  .c1bar{display:none;} body.wide .c1bar{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; border-top:1px solid var(--rule); margin-top:8px; padding-top:12px;}
+  .storyend{display:flex; gap:10px; align-items:center; flex-wrap:wrap; border-radius:12px; padding:8px 12px; background:#f0fdf4; border:1px solid #bbf7d0;}
+  .storyico{flex:none; width:52px;} .storyico .hsvg{height:38px;}
+  .scale{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; text-align:center;}
+  .scale div{border-radius:10px; background:#fff; border:1px solid var(--rule); padding:5px 2px; font-size:12px; font-weight:800; color:var(--soft);} .scale b{display:block; font-size:15px; color:var(--ink);}
+  /* calculator */
+  body.nocalc .calc-fab, body.nocalc .calc{display:none;}
+  .calc-fab{position:fixed; left:18px; bottom:18px; z-index:60; width:52px; height:52px; border-radius:16px; background:var(--line); color:#fff; display:grid; place-items:center; border:0; cursor:pointer; box-shadow:0 10px 24px -10px rgba(79,70,229,.8);}
+  .calc{position:fixed; left:18px; bottom:80px; z-index:60; width:236px; background:#fff; border:1px solid var(--rule); border-radius:18px; padding:12px; box-shadow:0 20px 40px -18px rgba(30,36,51,.45); display:none;}
+  .calc.open{display:block;}
+  .calc-disp{background:#f6f5ff; border-radius:12px; padding:8px 12px; text-align:right; min-height:58px;}
+  .calc-expr{font-size:12.5px; color:var(--faint); font-weight:700; min-height:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .calc-val{font-size:24px; font-weight:800; color:var(--ink); overflow:hidden; text-overflow:ellipsis;}
+  .calc-keys{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px;}
+  .calc-keys button{height:40px; border-radius:10px; border:1px solid var(--rule); background:#fff; font-weight:800; font-size:16px; cursor:pointer; color:var(--ink);}
+  .calc-keys button:hover{background:#f6f5ff;} .calc-keys button.op{color:var(--line); background:#f6f5ff;} .calc-keys button.eq{background:var(--line); color:#fff; border-color:var(--line);}
+  .calc-use{margin-top:8px; width:100%;}
+  .mini{border:1.5px solid var(--rule); background:#fff; border-radius:10px; width:34px; height:30px; font-weight:800; cursor:pointer;}
+  .mini:hover{border-color:var(--line); color:var(--line);}
+</style>
+</head>
+<body>
+<div class="max-w-[1320px] mx-auto px-4 lg:px-6 py-4 lg:py-5 flex flex-col gap-4">
+
+  <header class="flex flex-col gap-3">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="10" fill="#4f46e5"/><path d="M7 24 C 13 24, 14 10, 17 10 S 22 10, 27 10" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round"/><circle cx="9" cy="24" r="2.2" fill="#fdba74"/><circle cx="26" cy="10" r="2.2" fill="#86efac"/></svg>
+        <div class="min-w-0">
+          <h1 class="text-[20px] lg:text-[22px] font-semibold leading-tight">The Bidding War Story</h1>
+          <div class="text-[13px] font-bold text-[color:var(--soft)] truncate">How a machine learns to say yes or no</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0"><a href="./" class="chip" style="text-decoration:none">&larr; All lessons</a><div class="chip tabnum" id="chapChip">Chapter 1 of 8</div></div>
+    </div>
+    <nav class="prog" id="prog" aria-label="Chapters"></nav>
+  </header>
+
+  <main id="mainGrid" class="grid gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] items-start">
+    <section class="flex flex-col gap-3 min-w-0">
+      <div class="card-w p-3 lg:p-4" id="chartCard">
+        <div id="eqBar"></div>
+        <svg id="chart" role="img" aria-label="Chart of open house visitors versus the chance of selling above asking"></svg>
+        <div id="c1Bar" class="c1bar"></div>
+      </div>
+      <div class="card-w p-5 lg:p-6" id="scoreStage"></div>
+    </section>
+
+    <aside class="card-w p-4 lg:p-5 flex flex-col gap-4 min-w-0 lg:min-h-[520px]" id="panelWrap">
+      <div id="panel" class="flex flex-col gap-4"></div>
+      <div class="navrow">
+        <button class="btn btn-ghost btn-sm" id="backBtn">&larr; Back</button>
+        <div class="hintline" id="hintline"></div>
+        <button class="btn btn-sm btn-main" id="nextBtn">Next &rarr;</button>
+      </div>
+    </aside>
+
+    <section id="cardsSec">
+      <div class="flex items-baseline justify-between mb-2 gap-x-2 flex-wrap">
+        <h2 class="text-[17px] font-semibold" id="cardsTitle">The past sales</h2>
+        <div class="text-[12.5px] font-bold text-[color:var(--faint)]" id="cardsHint"></div>
+      </div>
+      <div class="cards" id="cards"></div>
+    </section>
+  </main>
+</div>
+
+<button class="calc-fab" id="calcFab" aria-label="Open calculator" title="Calculator"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="3.5" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg></button>
+<div class="calc" id="calc" role="dialog" aria-label="Calculator">
+  <div class="flex items-center justify-between mb-2"><span class="text-[13px] font-extrabold text-[color:var(--soft)]">Calculator</span><button class="mini" id="calcClose" aria-label="Close calculator">&times;</button></div>
+  <div class="calc-disp"><div class="calc-expr" id="calcExpr"></div><div class="calc-val tabnum" id="calcVal">0</div></div>
+  <div class="calc-keys" id="calcKeys"></div>
+  <button class="btn btn-main btn-sm calc-use" id="calcUse" style="display:none">Use this answer</button>
+</div>
+
+<script>
+/* ---------- data + plain math ----------
+   Eight past sales. v = visitors at the open house, y = 1 if it sold above asking, 0 if not.
+   Two stubborn houses on purpose: 19 visitors went above asking, 23 visitors did not. */
+const HOUSES=[
+  {v:4,  y:0, s:900,  body:'#f6bd60', roof:'#c2703d'},
+  {v:9,  y:0, s:1400, body:'#a7c4a0', roof:'#5b7f61'},
+  {v:14, y:0, s:1200, body:'#f5cac3', roof:'#b5656b'},
+  {v:19, y:1, s:1800, body:'#9ec5e8', roof:'#4a6f99'},
+  {v:23, y:0, s:2200, body:'#e9d8a6', roof:'#9b7b3a'},
+  {v:28, y:1, s:2000, body:'#d9c2f0', roof:'#7a5aa6'},
+  {v:35, y:1, s:2800, body:'#bfe3d0', roof:'#3f8a6b'},
+  {v:44, y:1, s:3300, body:'#f3d1a6', roof:'#a3622b'}
+];
+const N=HOUSES.length, VMAX=50;
+const sig=z=>1/(1+Math.exp(-z));
+const xOf=v=>v/10;                                   // X = visitors in 10s
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const mean=a=>a.reduce((t,v)=>t+v,0)/a.length;
+const r1=x=>{const v=Math.round(x*10)/10; return v===0?0:v;}, r2=x=>{const v=Math.round(x*100)/100; return v===0?0:v;};
+const f1s=x=>(r1(x)<0?'−':'')+Math.abs(r1(x)).toFixed(1);
+const n2=x=>{const v=r2(x); return (v<0?'−':'')+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};
+const pb=x=>(r1(x)<0?'− ':'+ ')+Math.abs(r1(x)).toFixed(1);   // for "X + b" text
+const pct=p=>Math.round(p*100)+'%';
+const chance=(L,v)=>sig(L.m*xOf(v)+L.b);              // curve: chance of above asking
+const pr=(L,h)=>Math.round(chance(L,h.v)*100)/100;    // chance shown in whole percents
+const gaveReal=(L,h)=>{const p=pr(L,h); return h.y?p:1-p;}   // chance the curve gave to what really happened
+const surprise=(L,h)=>r2(-Math.log(Math.max(gaveReal(L,h),0.01)));
+const lossRaw=L=>HOUSES.reduce((t,h)=>{const p=chance(L,h.v); return t-Math.log(Math.max(h.y?p:1-p,1e-9));},0)/N;
+const ALPHA=0.5;
+const gdData=L=>{ const e=HOUSES.map(h=>r2(pr(L,h)-h.y)), x=HOUSES.map(h=>xOf(h.v)), ex=e.map((v,i)=>r2(v*x[i])), ae=r2(mean(e)), aex=r2(mean(ex));
+  return {e,x,ex,ae,aex,nm:r1(L.m-ALPHA*aex),nb:r1(L.b-ALPHA*ae)}; };
+const gdStep=(L,a)=>{ let gm=0,gb=0; HOUSES.forEach(h=>{const e=chance(L,h.v)-h.y; gm+=e*xOf(h.v); gb+=e;}); return {m:L.m-a*gm/N,b:L.b-a*gb/N}; };
+// the best curve, found by running many steps
+const BEST=(()=>{ let L={m:0,b:0}; for(let i=0;i<200000;i++) L=gdStep(L,0.8); return L; })();
+const BESTLOSS=lossRaw(BEST);
+const LEARNED={m:r1(BEST.m), b:r1(BEST.b)};
+// the straight line from lesson 1, fitted to the 0 and 1 answers
+const LIN=(()=>{ const xs=HOUSES.map(h=>xOf(h.v)), ys=HOUSES.map(h=>h.y), mx=mean(xs), my=mean(ys);
+  const sl=xs.reduce((t,x,i)=>t+(x-mx)*(ys[i]-my),0)/xs.reduce((t,x)=>t+(x-mx)**2,0); return {sl,ic:my-sl*mx}; })();
+const linAt=v=>LIN.sl*xOf(v)+LIN.ic;
+const bestCut=()=>{ let best=0,bn=-1; for(let c=0;c<=VMAX;c++){ const n=cutRight(c); if(n>bn){bn=n;best=c;} } return bn; };
+const cutRight=c=>HOUSES.filter(h=>(h.v>=c?1:0)===h.y).length;
+const START={m:1,b:-1};                               // a rough curve used when the learner's own is already great
+
+/* ---------- state ---------- */
+const CH=[
+  {t:'Draw a cutoff', s:'Cutoff'},
+  {t:'Why not a line?', s:'Line?'},
+  {t:'Squash it into an S', s:'Squash'},
+  {t:'How bad is my curve?', s:'How bad?'},
+  {t:'How much to change?', s:'Change?'},
+  {t:'Fixing the curve', s:'Fixing'},
+  {t:'Repeat the steps', s:'Repeat'},
+  {t:'Price a new listing', s:'New house'}
+];
+const fresh=()=>({ch:0,maxCh:0,cut:20,
+  c2:{nv:25,over:false,under:false},
+  c3:{part:1,z:-2,got50:false,got95:false,dm:1.5,db:-3,locked:false,note:''},
+  first:{...START},
+  c4:{part:1,picked:-1,wrong:-1,tries:0,msg:'',revealed:false,val:'',vtries:0,hint:'',done:false},
+  c5:{part:1,q:null,tab:false,calcBusy:false},
+  c6:{val:{m:'',b:''},done:{m:false,b:false},tries:{m:0,b:0},fb:{m:'',b:''},pushed:false,busy:false},
+  fix:{...START},
+  c7:{alpha:1,n:100,L:null,steps:0,trail:[],hist:[],busy:false,done:false,tok:0},
+  c8:{v:31,st:0,val:'',tries:0,hint:''}});
+let S=fresh();
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(res=>setTimeout(res,ms));
+function anim(dur,fn){ return new Promise(res=>{ const t0=performance.now(); const st=t=>{ const k=clamp((t-t0)/dur,0,1), e=1-Math.pow(1-k,3); fn(e); if(k<1) requestAnimationFrame(st); else res(); }; requestAnimationFrame(st); }); }
+
+/* ---------- houses ---------- */
+function houseSVG(i,sign){
+  const h=HOUSES[i]||{s:2000,body:'#c4b5fd',roof:'#6d28d9'}; const f=clamp((h.s-700)/2900,0,1);
+  const bw=34+f*36, bh=21+f*12, x0=42-bw/2, yb=62, peak=yb-bh-13-f*6;
+  let w=''; const k=2+Math.round(f*2);
+  for(let j=0;j<k;j++){const cx=x0+bw*(j+.5)/k; if(Math.abs(cx-42)<7) continue; w+=`<rect x="${cx-3.5}" y="${yb-bh+5}" width="7" height="6.5" rx="1" fill="#fff" stroke="#1e2433" stroke-opacity=".25"/>`;}
+  const board=(word,col,bw2)=>`<g><line x1="87" y1="62" x2="87" y2="38" stroke="#6b5b45" stroke-width="2"/><rect x="${87-bw2/2}" y="35" width="${bw2}" height="12" rx="2" fill="${col}"/><text x="87" y="43.5" font-size="5.6" text-anchor="middle" fill="#fff" font-weight="800" font-family="Nunito">${word}</text></g>`;
+  let sg='';
+  if(sign==='sale') sg=board('FOR SALE','#4f46e5',24);
+  if(sign==='yes') sg=board('ABOVE','#16a34a',22);
+  if(sign==='no') sg=board('AT ASK','#d97706',22);
+  return `<svg class="hsvg" viewBox="0 0 100 70" aria-hidden="true"><ellipse cx="50" cy="63" rx="48" ry="3.5" fill="#e9e2d4"/>
+  <rect x="${x0}" y="${yb-bh}" width="${bw}" height="${bh}" fill="${h.body}" stroke="#1e2433" stroke-opacity=".2"/>
+  <polygon points="${x0-4},${yb-bh+1} 42,${peak} ${x0+bw+4},${yb-bh+1}" fill="${h.roof}"/>
+  <rect x="38.5" y="${yb-12}" width="7" height="12" rx="1" fill="#7c4a2d"/>${w}${sg}</svg>`;
+}
+const outSign=i=>HOUSES[i].y?'yes':'no';
+
+/* ---------- chart ---------- */
+const svg=$('chart');
+let W=640,H=400,NARROW=false; const M={l:58,r:14,t:14,b:44};
+let YD=[-0.14,1.14];
+const CX=v=>M.l+(v/VMAX)*(W-M.l-M.r);
+const CY=p=>M.t+(YD[1]-p)/(YD[1]-YD[0])*(H-M.t-M.b);
+const curvePath=L=>{ let d=''; for(let v=0;v<=VMAX;v+=1) d+=(v?'L':'M')+CX(v).toFixed(1)+' '+CY(chance(L,v)).toFixed(1)+' '; return d; };
+const dotColor=h=>h.y?'var(--yes)':'var(--no)';
+
+function chartOpts(){
+  const c=S.ch;
+  if(c===0) return {cut:true};
+  if(c===1) return {lin:true,step:true,nv:S.c2.nv,yd:[-0.42,1.5]};
+  if(c===2) return S.c3.part===1?{squash:true}:{main:{m:S.c3.dm,b:S.c3.db},gaps:false};
+  if(c===3) return {main:S.first,gaps:true,sur:S.c4.revealed};
+  if(c===4) return {main:S.first,gaps:true,miss:true};
+  if(c===5) return {main:S.fix,start:S.c6.pushed||S.c6.busy?S.first:null,gaps:true};
+  if(c===6) return {main:S.c7.L||S.first,trail:S.c7.trail,start:S.first};
+  return {main:LEARNED,newv:S.c8.v,learned:true};
+}
+function renderChart(){
+  const cw=svg.clientWidth||640; W=Math.max(300,cw); const wide=document.body.classList.contains('wide');
+  H=Math.round(wide?clamp(W*0.4,280,460):clamp(W*0.62,280,430)); NARROW=W<520; M.l=NARROW?46:58;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('height',H);
+  const o=chartOpts(); if(o.squash) return renderSquash();
+  YD=o.yd||[-0.14,1.14];
+  let s=`<defs><clipPath id="plot"><rect x="${M.l}" y="${M.t}" width="${W-M.l-M.r}" height="${H-M.t-M.b}"/></clipPath></defs>`;
+  if(o.lin){ s+=`<rect x="${M.l}" y="${CY(YD[1])}" width="${W-M.l-M.r}" height="${CY(1)-CY(YD[1])}" fill="#fff1f2"/><rect x="${M.l}" y="${CY(0)}" width="${W-M.l-M.r}" height="${CY(YD[0])-CY(0)}" fill="#fff1f2"/>
+    <text x="${M.l+8}" y="${CY(1)-8}" font-size="11.5" font-weight="800" fill="#be123c">More than 100%?! Impossible</text><text x="${W-M.r-8}" y="${CY(0)+18}" text-anchor="end" font-size="11.5" font-weight="800" fill="#be123c">Less than 0%?! Impossible</text>`; }
+  const ticks=o.lin?[0,.5,1]:[0,.25,.5,.75,1];
+  ticks.forEach(p=>{ if(NARROW&&p%.5) return; s+=`<line x1="${M.l}" x2="${W-M.r}" y1="${CY(p)}" y2="${CY(p)}" stroke="#efe9df"/><text x="${M.l-8}" y="${CY(p)+4}" font-size="11.5" text-anchor="end" fill="#9aa3b2" font-weight="700">${Math.round(p*100)}%</text>`; });
+  for(let v=0;v<=VMAX;v+=10) s+=`<line x1="${CX(v)}" x2="${CX(v)}" y1="${M.t}" y2="${H-M.b}" stroke="#f4efe6"/><text x="${CX(v)}" y="${H-M.b+17}" font-size="11.5" text-anchor="middle" fill="#9aa3b2" font-weight="700">${v}</text>`;
+  s+=`<text x="${(M.l+W-M.r)/2}" y="${H-6}" font-size="12" text-anchor="middle" fill="#5b6476" font-weight="800">Open house visitors</text>`;
+  s+=`<text transform="translate(12 ${(M.t+H-M.b)/2}) rotate(-90)" font-size="12" text-anchor="middle" fill="#5b6476" font-weight="800">Chance of selling above asking</text>`;
+  s+=`<g clip-path="url(#plot)">`;
+  if(o.cut){ const x=CX(S.cut);
+    s+=`<rect x="${M.l}" y="${M.t}" width="${Math.max(0,x-M.l)}" height="${H-M.t-M.b}" fill="#fff4e6"/><rect x="${x}" y="${M.t}" width="${Math.max(0,W-M.r-x)}" height="${H-M.t-M.b}" fill="#ecfdf3"/>
+    <line x1="${x}" x2="${x}" y1="${M.t}" y2="${H-M.b}" stroke="var(--line)" stroke-width="3.5"/>`;
+    s+=`<text x="${clamp(x-8,M.l+30,W-M.r)}" y="${M.t+18}" font-size="12.5" font-weight="800" text-anchor="end" fill="#9a3412">Say NO</text><text x="${clamp(x+8,M.l,W-M.r-34)}" y="${M.t+18}" font-size="12.5" font-weight="800" fill="#166534">Say YES</text>`; }
+  if(o.step){ let d=`M${CX(0)} ${CY(0)} L${CX(S.cut)} ${CY(0)} L${CX(S.cut)} ${CY(1)} L${CX(VMAX)} ${CY(1)}`; s+=`<path d="${d}" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round"/>`; }
+  if(o.lin) s+=`<line x1="${CX(0)}" y1="${CY(linAt(0))}" x2="${CX(VMAX)}" y2="${CY(linAt(VMAX))}" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>`;
+  if(o.trail) o.trail.slice(-25).forEach((L,j,arr)=>{ s+=`<path d="${curvePath(L)}" fill="none" stroke="var(--line)" stroke-width="2" opacity="${0.06+0.3*(j+1)/arr.length}"/>`; });
+  if(o.start) s+=`<path d="${curvePath(o.start)}" fill="none" stroke="#9aa3b2" stroke-width="2.5" stroke-dasharray="6 6"/>`;
+  if(o.main) s+=`<path d="${curvePath(o.main)}" fill="none" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>`;
+  if(o.gaps&&o.main) HOUSES.forEach(h=>{ const p=pr(o.main,h), hi=p>h.y, col=hi?'var(--hi)':'var(--lo)'; if(Math.abs(p-h.y)<.02) return;
+    s+=`<line x1="${CX(h.v)}" x2="${CX(h.v)}" y1="${CY(h.y)}" y2="${CY(p)}" stroke="${col}" stroke-width="3.5"/>`;
+    s+=`<circle cx="${CX(h.v)}" cy="${CY(p)}" r="4.5" fill="#fff" stroke="var(--line)" stroke-width="2.5"/>`; });
+  // the dots: what really happened
+  HOUSES.forEach(h=>{ let ring='';
+    if(o.cut){ const right=(h.v>=S.cut?1:0)===h.y; if(!right) ring=`<circle cx="${CX(h.v)}" cy="${CY(h.y)}" r="13" fill="none" stroke="var(--hi)" stroke-width="2.5" stroke-dasharray="4 3"/>`; }
+    s+=ring+`<circle cx="${CX(h.v)}" cy="${CY(h.y)}" r="7.5" fill="${dotColor(h)}" stroke="#fff" stroke-width="2"/>`; });
+  s+=`</g>`;
+  if(o.gaps&&o.main&&!NARROW) HOUSES.forEach(h=>{ const p=pr(o.main,h); if(Math.abs(p-h.y)<.02) return; const my=(CY(p)+CY(h.y))/2, hi=p>h.y;
+    const txt=o.sur?`+${n2(surprise(o.main,h))}`:o.miss?(hi?'+':'−')+n2(Math.abs(p-h.y)):''; if(!txt) return;
+    s+=`<text x="${CX(h.v)+8}" y="${my+4}" font-size="11.5" font-weight="800" fill="${hi?'#9f1239':'#92400e'}" stroke="#fff" stroke-width="4" paint-order="stroke">${txt}</text>`; });
+  if(o.nv!=null||o.newv!=null){ const v=o.nv!=null?o.nv:o.newv, x=CX(v);
+    s+=`<line x1="${x}" x2="${x}" y1="${M.t}" y2="${H-M.b}" stroke="#f97316" stroke-width="2" stroke-dasharray="5 5" opacity=".8"/>`;
+    if(o.nv!=null){ const cl=v>=S.cut; s+=`<circle cx="${x}" cy="${CY(cl?1:0)}" r="6" fill="#fff" stroke="#64748b" stroke-width="3"/><circle cx="${x}" cy="${CY(linAt(v))}" r="7" fill="#fff" stroke="var(--line)" stroke-width="3.5"/>`; }
+    else if(S.c8.st>=2){ const p=chance(LEARNED,v); s+=`<circle class="popin" style="transform-origin:${x}px ${CY(p)}px" cx="${x}" cy="${CY(p)}" r="8" fill="#fff" stroke="var(--line)" stroke-width="4"/>`; } }
+  if(o.main&&S.ch>=6&&!o.learned&&false) {}
+  svg.innerHTML=s;
+}
+// chapter 3, part 1: the squasher itself (score on the bottom, chance up the side)
+function renderSquash(){
+  const z=S.c3.z, sx=zv=>M.l+(zv+6)/12*(W-M.l-M.r), sy=p=>M.t+(1-p)*(H-M.t-M.b);
+  let s='';
+  [0,.5,1].forEach(p=>s+=`<line x1="${M.l}" x2="${W-M.r}" y1="${sy(p)}" y2="${sy(p)}" stroke="#efe9df"/><text x="${M.l-8}" y="${sy(p)+4}" font-size="11.5" text-anchor="end" fill="#9aa3b2" font-weight="700">${Math.round(p*100)}%</text>`);
+  for(let q=-6;q<=6;q+=3) s+=`<line x1="${sx(q)}" x2="${sx(q)}" y1="${M.t}" y2="${H-M.b}" stroke="#f4efe6"/><text x="${sx(q)}" y="${H-M.b+17}" font-size="11.5" text-anchor="middle" fill="#9aa3b2" font-weight="700">${q}</text>`;
+  s+=`<text x="${(M.l+W-M.r)/2}" y="${H-6}" font-size="12" text-anchor="middle" fill="#5b6476" font-weight="800">Score (any number at all)</text>`;
+  s+=`<text transform="translate(12 ${(M.t+H-M.b)/2}) rotate(-90)" font-size="12" text-anchor="middle" fill="#5b6476" font-weight="800">Chance after squashing</text>`;
+  let d=''; for(let q=-6;q<=6.001;q+=.2) d+=(q<-5.99?'M':'L')+sx(q).toFixed(1)+' '+sy(sig(q)).toFixed(1)+' ';
+  s+=`<path d="${d}" fill="none" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>`;
+  const p=sig(z);
+  s+=`<line x1="${sx(z)}" x2="${sx(z)}" y1="${sy(0)}" y2="${sy(p)}" stroke="#f97316" stroke-width="2" stroke-dasharray="5 5"/><line x1="${M.l}" x2="${sx(z)}" y1="${sy(p)}" y2="${sy(p)}" stroke="#f97316" stroke-width="2" stroke-dasharray="5 5"/>
+    <circle cx="${sx(z)}" cy="${sy(p)}" r="8" fill="#fff" stroke="var(--line)" stroke-width="4"/>
+    <text x="${clamp(sx(z)+12,M.l+10,W-M.r-70)}" y="${sy(p)+(p>.5?22:-12)}" font-size="15" font-weight="800" fill="var(--line)" stroke="#fff" stroke-width="4" paint-order="stroke">${pct(p)}</text>`;
+  svg.innerHTML=s;
+}
+/* equation strip */
+function renderEq(L,title){
+  $('eqBar').innerHTML=`<div class="eqstrip"><span class="slabel" style="margin:0">${title}</span>
+    <span class="eqright"><span class="disp eqline">chance = squash( <span id="eqM" class="slot cm tabnum">${f1s(L.m)}</span> &times; X <span id="eqSign">${r1(L.b)<0?'−':'+'}</span> <span id="eqB" class="slot cb tabnum">${Math.abs(r1(L.b)).toFixed(1)}</span> )</span>
+      <span class="eqcap">X = visitors &divide; 10 &nbsp;&middot;&nbsp; <span class="cm">m</span> = how sharply it turns &nbsp;&middot;&nbsp; <span class="cb">b</span> = slides it left or right</span></span></div>`;
+}
+
+/* ---------- cards ---------- */
+function cardsFor(){
+  const c=S.ch, q='<span style="color:var(--faint)">?</span>';
+  if(c===7){ const v=S.c8.v, f=clamp(0.2+v/60,0.2,1);
+    const fake=houseSVG(-1,'sale');
+    return `<div class="hcard" style="flex:0 0 280px;margin:0 auto;max-width:100%;padding:12px 14px"><div>${fake}</div>
+      <div class="hsize" id="n8Size">${v} visitors</div>
+      <input type="range" min="0" max="50" step="1" value="${v}" id="n8R" aria-label="Visitors at the new house" class="w-full" ${S.c8.st===1?'disabled':''}>
+      <div class="hrow"><span>The curve says</span><b class="g tabnum" id="n8Best">${S.c8.st>=2?pct(chance(LEARNED,v)):'?'}</b></div></div>`; }
+  const L=c===5?S.fix:c===6?(S.c7.L||S.first):c===2?{m:S.c3.dm,b:S.c3.db}:S.first;
+  return HOUSES.map((h,i)=>{
+    const pOk=pr(L,h), real=h.y?'Yes':'No';
+    let body=`<div class="hrow"><span>Visitors</span><b class="tabnum">${h.v}</b></div>`, foot='', cls='';
+    if(c===0){ const right=(h.v>=S.cut?1:0)===h.y;
+      body+=`<div class="hrow"><span>Sold</span><span class="ytag ${h.y?'y':'n'}">${h.y?'Above ask':'At or below'}</span></div>`;
+      foot=`<div class="miss ${right?'ok':'hi'}">${h.v>=S.cut?'Said YES':'Said NO'}: ${right?'right':'wrong'}</div>`; }
+    else if(c===1){ body+=`<div class="hrow"><span>Sold</span><span class="ytag ${h.y?'y':'n'}">${h.y?'Above ask':'At or below'}</span></div>`; }
+    else {
+      body+=`<div class="hrow"><span>Curve says</span><b class="g tabnum">${pct(pOk)}</b></div><div class="hrow"><span>Happened</span><span class="ytag ${h.y?'y':'n'}">${real}</span></div>`;
+      if(c===3){ const rv=S.c4.revealed; body+=`<div class="hrow"><span>Gave it</span><b class="tabnum">${pct(gaveReal(L,h))}</b></div>`;
+        foot=rv?`<div class="miss ${surprise(L,h)<.5?'ok':surprise(L,h)<1.2?'lo':'hi'}">Surprise ${n2(surprise(L,h))}</div>`:`<div class="miss nil">Surprise: ?</div>`;
+        cls=!rv?'tap':''; if(S.c4.wrong===i) cls+=' wrongpick'; }
+      else if(c===4){ const e=pOk-h.y; foot=`<div class="miss ${Math.abs(e)<.03?'ok':e>0?'hi':'lo'}">${Math.abs(e)<.03?'Spot on':e>0?'Too keen':'Too shy'} (${(e>0?'+':'−')+n2(Math.abs(e))})</div>`; }
+    }
+    return `<div class="hcard ${cls}" data-i="${i}">${houseSVG(i,c<=1||c===2?outSign(i):outSign(i))}${foot?'':''}<div class="hsize">House ${i+1}</div>${body}${foot}</div>`;
+  }).join('');
+}
+$('cards').addEventListener('click',e=>{ const card=e.target.closest('.hcard'); if(!card||S.ch!==3||S.c4.part!==1||S.c4.revealed) return; pickSurprise(+card.dataset.i); });
+
+/* ---------- panels ---------- */
+const P={};
+const head=(n,t,sub)=>`<div><div class="ptitle">Chapter ${n}${sub?' &middot; '+sub:''}</div><div class="phead">${t}</div></div>`;
+const checkItem=(on,t)=>`<div class="check ${on?'on':''}"><i>${on?'&#10003;':''}</i><span>${t}</span></div>`;
+
+/* chapter 1: draw a cutoff */
+P[0]={html:()=>{ const n=cutRight(S.cut), top=bestCut();
+  return head(1,'Yes or no?')+`
+  <p class="task">Last time, Maya priced houses. Now she has a different question: <b>will this house sell above asking price?</b> (A bidding war!)</p>
+  <p class="task">Here are 8 past sales. <span style="color:var(--yes)" class="font-extrabold">Green</span> sold above asking, <span style="color:var(--no)" class="font-extrabold">orange</span> did not. Maya thinks it depends on how many people came to the open house.</p>
+  <div class="mathbox"><div class="slabel">Make a rule</div>
+    <div class="text-[16px] font-extrabold">Say YES when a house has at least <span style="color:var(--line)" class="tabnum">${S.cut}</span> visitors.</div>
+    <input type="range" min="0" max="50" step="1" value="${S.cut}" id="cutR" class="range range-sm w-full mt-2" aria-label="Cutoff in visitors"></div>
+  <div class="flex items-center gap-3"><span class="chip tabnum" style="font-size:14px">Right on ${n} of ${N}</span></div>
+  <p class="text-[14px] font-bold" style="color:${n>=top?'#166534':'#9a3412'}">${n>=top?`${n} of ${N}! That is the best any cutoff can do. Two houses refuse to follow the rule: 19 visitors went above asking, but 23 visitors did not.`:`Slide the cutoff left or right. Can you get at least ${top} of ${N} right?`}</p>`; },
+  wire(){ $('cutR').oninput=e=>{ S.cut=+e.target.value; update(); }; },
+  done:()=>cutRight(S.cut)>=bestCut(), hint:`Get ${bestCut()} of ${N} right`};
+
+/* chapter 2: why not a straight line? */
+P[1]={html:()=>{ const C=S.c2, v=C.nv, lv=linAt(v), bad=lv>1||lv<0, cutSay=v>=S.cut;
+  const lineTxt=lv>1?`${Math.round(lv*100)}% chance`:lv<0?`${Math.round(lv*100)}% chance`:`${Math.round(lv*100)}% chance`;
+  return head(2,'Why not a straight line?')+`
+  <p class="task">In lesson 1 we drew a straight line to predict a number. Let's try it here: <b>yes = 1, no = 0</b>, and the line gives a chance. Slide a new house along and compare.</p>
+  <div class="mathbox"><div class="slabel">A new house</div><div class="text-[16px] font-extrabold tabnum">${v} visitors</div>
+    <input type="range" min="0" max="50" step="1" value="${v}" id="nvR" class="range range-sm w-full mt-1" aria-label="Visitors at a new house"></div>
+  <div class="flex flex-col gap-2">
+    <div class="tag flex items-center justify-between gap-2"><span class="text-[13.5px] font-extrabold" style="color:#64748b">Cutoff rule</span><span class="ytag ${cutSay?'y':'n'}" style="font-size:14px">${cutSay?'YES':'NO'}</span></div>
+    <div class="tag flex items-center justify-between gap-2" style="${bad?'background:#fff1f2;border-color:#fda4af':''}"><span class="text-[13.5px] font-extrabold" style="color:var(--line)">Straight line</span><span class="text-[16px] font-extrabold tabnum" style="color:${bad?'#be123c':'var(--ink)'}">${lineTxt}${bad?' ?!':''}</span></div></div>
+  <div class="flex flex-col gap-2">${checkItem(C.over,'Find a house where the line says <b>more than 100%</b>.')}${checkItem(C.under,'Find a house where the line says <b>less than 0%</b>.')}</div>
+  ${C.over&&C.under?`<div class="namebox"><div class="slabel">Two problems</div>
+    <p class="task"><b>1.</b> A chance can never be above 100% or below 0%.<br><b>2.</b> The cutoff has a cliff: ${S.cut-1} visitors means NO, ${S.cut} means YES, with nothing in between. Real life is more "maybe".</p>
+    <p class="task mt-2"><b>What we want:</b> a smooth curve that bends like an S and never leaves 0% to 100%.</p></div>`:''}`; },
+  wire(){ $('nvR').oninput=e=>{ const C=S.c2; C.nv=+e.target.value; const lv=linAt(C.nv); if(lv>1) C.over=true; if(lv<0) C.under=true; update(); }; },
+  done:()=>S.c2.over&&S.c2.under, hint:'Find both impossible chances'};
+
+/* chapter 3: squash the line into an S, then build your own curve */
+P[2]={html:()=>S.c3.part===1?P2a():P2b(),
+  wire(){ if(S.c3.part===1){ $('zR').oninput=e=>{ const C=S.c3; C.z=+e.target.value; const p=sig(C.z); if(Math.abs(C.z)<=.15) C.got50=true; if(p>=.95) C.got95=true; update(); };
+      if($('toBuild')) $('toBuild').onclick=()=>{ S.c3.part=2; update(); }; }
+    else { $('dmR').oninput=e=>{ S.c3.dm=+e.target.value; S.c3.locked=false; update(); }; $('dbR').oninput=e=>{ S.c3.db=+e.target.value; S.c3.locked=false; update(); }; $('lockBtn').onclick=lockCurve;
+      if($('back1')) $('back1').onclick=()=>{ S.c3.part=1; update(); }; } },
+  done:()=>S.c3.locked, hint:'Find both scores, then lock in a curve'};
+function P2a(){ const C=S.c3, p=sig(C.z), both=C.got50&&C.got95;
+  return head(3,'Squash it into an S','Part 1 of 2')+`
+  <p class="task">You still have a line to work with: <b>score = m &times; X + b</b>. The trouble is a score can be any number, like −50 or 80.</p>
+  <p class="task">So we add one step: <b>squash</b> the score into a chance between 0% and 100%. Slide the score and watch.</p>
+  <div class="mathbox"><div class="slabel">Score</div><div class="flex items-baseline justify-between"><span class="text-[20px] font-extrabold tabnum" id="zVal">${C.z>0?'+':C.z<0?'−':''}${Math.abs(C.z).toFixed(1)}</span><span class="text-[14px] font-extrabold">&rarr; <span class="tabnum" style="color:var(--line);font-size:20px">${pct(p)}</span> chance</span></div>
+    <input type="range" min="-6" max="6" step="0.1" value="${C.z}" id="zR" class="range range-sm w-full mt-1" aria-label="Score"></div>
+  <div class="flex flex-col gap-2">${checkItem(C.got50,'Find the score that gives exactly <b>50%</b>.')}${checkItem(C.got95,'Find a score that gives at least <b>95%</b>.')}</div>
+  ${both?`<p class="task"><b>Score 0 is a coin flip. Big positive scores sit near 100%, big negative ones near 0%.</b> Never outside. That S shape is the whole trick.</p><button class="btn btn-main" id="toBuild">Now build your own curve &rarr;</button>`:''}`; }
+function P2b(){ const C=S.c3, L={m:C.dm,b:C.db};
+  return head(3,'Build your curve','Part 2 of 2')+`
+  <p class="task">Squash the line's score for every house and you get a curve. <b>m</b> sets how sharply it turns. <b>b</b> slides it left or right. Make it hug the dots.</p>
+  <div class="mathbox flex flex-col gap-3">
+    <label class="flex flex-col gap-1"><span class="text-[13.5px] font-extrabold"><span class="cm">m</span> (turn sharpness): <span class="tabnum">${f1s(C.dm)}</span></span><input type="range" min="0" max="5" step="0.5" value="${C.dm}" id="dmR" class="range range-sm" aria-label="m"></label>
+    <label class="flex flex-col gap-1"><span class="text-[13.5px] font-extrabold"><span class="cb">b</span> (slide): <span class="tabnum">${f1s(C.db)}</span></span><input type="range" min="-10" max="2" step="0.5" value="${C.db}" id="dbR" class="range range-sm" aria-label="b"></label></div>
+  <p class="text-[13px] font-bold text-[color:var(--soft)]">It does not have to be perfect. The computer will do the fixing later.</p>
+  ${C.note?`<p class="text-[14px] font-bold" style="color:#166534">${C.note}</p>`:''}
+  <button class="btn btn-main" id="lockBtn">${C.locked?'Locked in':'Lock in my curve'}</button>
+  <button class="btn btn-ghost btn-sm" id="back1">&larr; Back to the squasher</button>`; }
+function lockCurve(){ const C=S.c3, L={m:C.dm,b:C.db};
+  if(lossRaw(L)<BESTLOSS*1.2){ S.first={...START}; C.note=`Wow, your curve is already really good, so there is nothing left to teach it! For the lesson, we will start from a rougher curve: m = ${f1s(START.m)}, b = ${f1s(START.b)}.`; }
+  else { S.first={...L}; C.note=`Locked in: chance = squash( ${f1s(L.m)} × X ${pb(L.b)} ). This is your first curve.`; }
+  C.locked=true; S.fix={...S.first}; update(); }
+
+/* chapter 4: how bad is my curve? (the surprise score) */
+const SCALE=[.95,.8,.5,.2,.05,.01];
+P[3]={html:()=>{ const C=S.c4; return C.part===1?P3a():P3b(); },
+  wire(){ const C=S.c4; if(C.part===2&&!C.done){ const inp=$('avIn'); inp.oninput=()=>{C.val=inp.value;}; inp.onkeydown=e=>{ if(e.key==='Enter') avgCheck(); }; $('avChk').onclick=avgCheck; $('avShw').onclick=()=>avgAccept(true); }
+    if($('toAvg')) $('toAvg').onclick=()=>{ C.part=2; update(); }; },
+  done:()=>S.c4.done, hint:'Work out your curve\'s score'};
+function P3a(){ const C=S.c4;
+  return head(4,'How bad is my curve?','Part 1 of 2')+`
+  <p class="task">Your curve gives every house a chance. Now look at the chance it gave to <b>what really happened</b>.</p>
+  <div class="mathbox"><div class="slabel">Surprise points</div><p class="text-[13.5px] font-bold">Gave the real outcome a high chance? Barely surprised. Gave it a tiny chance? Shocked.</p>
+    <div class="scale mt-2">${SCALE.map(q=>`<div>${pct(q)}<b>${n2(-Math.log(q))}</b></div>`).join('')}</div>
+    <div class="text-[12px] font-bold text-[color:var(--soft)] mt-1">top: chance given to what happened &middot; bottom: surprise (it is the negative log of that chance)</div></div>
+  ${!C.revealed?`<p class="text-[15px] font-bold"><b>Which house surprised your curve the most?</b> Tap its card below.</p>
+    <p class="text-[13.5px] font-bold" style="color:#9a3412">${C.msg}</p>`
+  :`<p class="text-[14px] font-bold" style="color:#166534">${C.msg}</p><button class="btn btn-main" id="toAvg">Next: one score for the whole curve &rarr;</button>`}`; }
+function maxSurprise(){ let bi=0; HOUSES.forEach((h,i)=>{ if(surprise(S.first,h)>surprise(S.first,HOUSES[bi])) bi=i; }); return bi; }
+function pickSurprise(i){ const C=S.c4, bi=maxSurprise(), h=HOUSES[i];
+  if(i===bi||surprise(S.first,h)===surprise(S.first,HOUSES[bi])){ C.revealed=true; C.wrong=-1; C.msg=`Yes! The curve gave only ${pct(gaveReal(S.first,HOUSES[bi]))} to what happened at the ${HOUSES[bi].v} visitor house, so it scores ${n2(surprise(S.first,HOUSES[bi]))} surprise points. See them all on the chart and cards.`; }
+  else { C.tries++; C.wrong=i; C.msg=C.tries===1?'Not that one. Look for the house where the real outcome got the lowest chance.':'Still not it. Check the "Gave it" row on each card: the smallest chance means the biggest surprise.'; }
+  update(); C.wrong=-1; }
+function surList(){ return HOUSES.map(h=>surprise(S.first,h)); }
+function P3b(){ const C=S.c4, sl=surList(), sum=r2(sl.reduce((a,b)=>a+b,0)), avg=r2(mean(sl));
+  if(C.done) return head(4,'How bad is my curve?','Part 2 of 2')+`
+    <div class="mathbox tabnum"><div class="slabel">Average the surprise</div>(${sl.map(n2).join(' + ')}) &divide; ${N} = <b>${n2(avg)}</b></div>
+    <div class="namebox"><div class="slabel">How bad your curve is</div><div class="disp text-[26px] font-semibold">${n2(avg)}</div>
+      <p class="task mt-1">The bigger the number, the more your curve needs to change. A perfect curve would score 0. Its official name is <b>log loss</b>: the average surprise.</p></div>`;
+  return head(4,'How bad is my curve?','Part 2 of 2')+`
+  <p class="task">Now one number for the whole curve: the <b>average</b> surprise.</p>
+  <div class="mathbox tabnum text-[13.5px]">${sl.map((v,i)=>`${HOUSES[i].v} visitors: <b>${n2(v)}</b>`).join(' &middot; ')}</div>
+  <p class="text-[15px] font-bold"><b>Add up the ${N} surprise scores, then divide by ${N}.</b> What do you get?</p>
+  ${C.hint?`<span class="text-[13px] font-bold" style="color:#9a3412">${C.hint}</span>`:''}
+  <span class="flex items-center gap-2 flex-wrap"><label class="ansbox ${C.vtries&&C.hint?'shake':''}"><input data-ans id="avIn" inputmode="decimal" autocomplete="off" value="${C.val}" aria-label="Average surprise"></label>
+    <button class="btn btn-main" id="avChk">Check</button><button class="btn btn-ghost btn-sm" id="avShw">Show me</button></span>`; }
+function avgCheck(){ const C=S.c4, sl=surList(), sum=sl.reduce((a,b)=>a+b,0), avg=sum/N, v=parseFloat(String(C.val).replace(/[^0-9.]/g,''));
+  if(isNaN(v)){ C.hint='Type a number.'; update(); return $('avIn')?.focus({preventScroll:true}); }
+  if(Math.abs(v-avg)<=0.02) return avgAccept(false);
+  C.vtries++; C.hint=Math.abs(v-sum)<=0.05?`That is the total. Now divide it by ${N}.`:C.vtries===1?`Not quite. Add all ${N} first, then divide by ${N}.`:`The total is ${n2(sum)}. Now ${n2(sum)} ÷ ${N} = ?`;
+  update(); $('avIn')?.focus({preventScroll:true}); }
+function avgAccept(){ const C=S.c4; C.done=true; C.hint=''; C.val=''; update(); }
+
+/* chapter 5: how much to change? Part 1: which way. Part 2: the table. */
+P[4]={html:()=>S.c5.part===1?renderWhichWay():'', wire(){}, done:()=>S.c5.tab, hint:'Work out which way, then crunch the misses'};
+function renderWhichWay(){ const C=S.c5, D=gdData(S.first), keen=D.ae>0, ok=C.q&&!C.q.startsWith('wrong'), wrong=C.q&&C.q.startsWith('wrong')?C.q.slice(6):null;
+  const yes=keen?`Right! The curve gives too much chance of YES overall. It should <b>slide to the right</b>: a house needs more visitors before it says yes.`:`Right! The curve is too shy about YES overall. It should <b>slide to the left</b>: fewer visitors needed before it says yes.`;
+  return head(5,'Which way?','Part 1 of 2')+`
+  <p class="task">Each bar on the chart is a <b>miss</b>: the curve's chance minus what happened (1 for yes, 0 for no). <span style="color:#9f1239" class="font-extrabold">Red</span> means the curve was too keen on yes. <span style="color:#92400e" class="font-extrabold">Amber</span> means too shy.</p>
+  <p class="task"><b>Overall, is your curve too keen on YES or too shy?</b></p>
+  <div class="grid grid-cols-2 gap-2">${[['keen','Too keen'],['shy','Too shy']].map(([a,t])=>`<button class="choice ${ok&&C.q===a?'right':''} ${wrong===a?'wrong':''}" data-a="${a}" ${ok?'disabled':''}>${t}</button>`).join('')}</div>
+  <div class="text-[14px] font-bold" style="color:${ok?'#166534':'#9a3412'}">${ok?yes:wrong?'Look again: add up the bars. Is there more red or more amber?':''}</div>
+  ${ok?`<p class="task">Sliding left or right is the job of <b class="cb">b</b>. Turning the curve sharper or softer is the job of <b class="cm">m</b>. But <b>how far</b>? The misses can tell us exactly.</p><button class="btn btn-main" id="toTable">Crunch the misses &rarr;</button>`:''}`; }
+function wireWhichWay(){ document.querySelectorAll('#panel .choice').forEach(b=>b.onclick=()=>{ const keen=gdData(S.first).ae>0, a=b.dataset.a; S.c5.q=(a==='keen')===keen?a:'wrong:'+a; update(); });
+  if($('toTable')) $('toTable').onclick=()=>{ S.c5.part=2; update(); window.scrollTo({top:0,behavior:'smooth'}); }; }
+function renderTable(){ const C=S.c5, D=gdData(S.first), on=C.tab;
+  const cell=(id,t,st='')=>`<span class="cell ${on?'on':''}" id="${id}" ${st}>${t}</span>`;
+  const sg=v=>(v<0?'−':'+')+n2(Math.abs(v));
+  $('scoreStage').innerHTML=`<div class="flex flex-wrap items-end justify-between gap-3">${head(5,'How much to change?','Part 2 of 2')}
+      <button class="btn btn-main" id="tbCalc" ${on||C.calcBusy?'disabled':''}>${C.calcBusy?'Calculating...':on?'Calculated':'Calculate'}</button></div>
+    <p class="task mt-2">Two averages from eight houses tell us how far to move the curve: one for <b class="cb">b</b> (the slide) and one for <b class="cm">m</b> (the sharpness).</p>
+    <div class="grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)] mt-3 items-start">
+      <div class="overflow-x-auto"><table class="w-full text-[15px] font-bold tabnum dtab"><colgroup><col style="width:21%"><col style="width:15%"><col style="width:15%"><col style="width:16%"><col style="width:12%"><col style="width:21%"></colgroup>
+        <thead><tr class="text-[12.5px] text-[color:var(--soft)] uppercase tracking-wide"><th class="tl">House</th><th>Curve says</th><th>Happened</th><th class="hl">miss</th><th>X</th><th class="hl">miss &times; X</th></tr></thead>
+        <tbody>${HOUSES.map((h,i)=>`<tr><td class="tl">${h.v} visitors</td><td style="color:var(--line)">${n2(pr(S.first,h))}</td><td>${h.y}</td>
+          <td class="hl">${cell('cm'+i,sg(D.e[i]),`style="color:${D.e[i]>0?'#be123c':'#b45309'}"`)}</td><td>${cell('cx'+i,n2(D.x[i]))}</td><td class="hl">${cell('cp'+i,sg(D.ex[i]))}</td></tr>`).join('')}</tbody>
+        <tfoot><tr class="avg"><td class="tl">Average</td><td></td><td></td><td class="hl"><span class="avgv cb ${on?'on':''}" id="avM">${sg(D.ae)}</span></td><td></td><td class="hl"><span class="avgv cm ${on?'on':''}" id="avX">${sg(D.aex)}</span></td></tr></tfoot>
+      </table></div>
+      <div class="flex flex-col gap-3 text-[14px] font-bold text-[color:var(--soft)]">
+        <div class="slabel">What each column means</div>
+        <div><b class="text-[color:var(--ink)]">Curve says</b> = the chance your curve gave. <b class="text-[color:var(--ink)]">Happened</b> = 1 if it sold above asking, 0 if not.</div>
+        <div><b class="text-[color:var(--ink)]">miss</b> = curve says &minus; happened. Plus means too keen on yes, minus too shy.</div>
+        <div><b class="text-[color:var(--ink)]">X</b> = visitors in 10s. <b class="text-[color:var(--ink)]">miss &times; X</b> gives busy open houses more say in the sharpness.</div>
+        <div class="border-t border-dashed border-[color:var(--rule)] pt-3">The <b class="cb">average miss</b> and the <b class="cm">average of miss &times; X</b> will fix the curve.
+          <div class="mt-2 text-[13px]" id="tbMsg"></div></div>
+      </div></div>
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--rule)] mt-4 pt-4">
+      <button class="btn btn-ghost btn-sm" id="tbBack">&larr; Which way</button>
+      <button class="btn btn-main" id="tbNext" ${on?'':'disabled'}>Next: fix the curve &rarr;</button></div>`;
+  $('tbBack').onclick=()=>{ if(C.calcBusy) return; C.part=1; update(); };
+  if(!on&&!C.calcBusy) $('tbCalc').onclick=tbCalc;
+  if(on) $('tbNext').onclick=()=>{ go(5); window.scrollTo({top:0,behavior:'smooth'}); };
+}
+async function tbCalc(){ const C=S.c5, D=gdData(S.first), sg=v=>(v<0?'−':'+')+n2(Math.abs(v)); C.calcBusy=true; $('tbCalc').disabled=true; $('tbCalc').textContent='Calculating...';
+  const msg=t=>{ if($('tbMsg')) $('tbMsg').innerHTML=t; };
+  const fill=async(pre,txt,color)=>{ for(let i=0;i<N;i++){ const el=$(pre+i); if(!el) return; el.className='cell on res'; el.style.color=color?color(i):''; el.innerHTML=txt(i); await sleep(170); } };
+  msg('<b>miss</b> = the curve\'s chance minus what happened'); await fill('cm',i=>sg(D.e[i]),i=>D.e[i]>0?'#be123c':'#b45309'); await sleep(250);
+  msg('<b>X</b> = visitors &divide; 10'); await fill('cx',i=>n2(D.x[i])); await sleep(250);
+  msg('<b>miss &times; X</b> = multiply the two'); await fill('cp',i=>sg(D.ex[i])); await sleep(350);
+  const avg=async(id,list,val)=>{ msg(`(${list.map((v,j)=>j?(v<0?`− ${n2(-v)}`:`+ ${n2(v)}`):n2(v)).join(' ')}) &divide; ${N} = <b>${sg(val)}</b>`); const el=$(id); if(el){ el.classList.add('on'); await anim(900,e=>{ el.textContent=sg(val*e); }); el.textContent=sg(val); } await sleep(900); };
+  await avg('avM',D.e,D.ae); await avg('avX',D.ex,D.aex);
+  C.calcBusy=false; C.tab=true; if(S.ch===4) update(); }
+
+/* chapter 6: plug in the numbers */
+P[5]={html:()=>{ const C=S.c6, D=gdData(S.first), row=k=>{ const isM=k==='m', ok=C.done[k], locked=isM?false:!C.done.m, old=isM?S.first.m:S.first.b, avg=isM?D.aex:D.ae;
+    return `<div class="plugrow"><span class="whitespace-nowrap"><span class="${isM?'cm':'cb'}">${k}</span> &larr; ${f1s(old)} − ${ALPHA} × (<span class="${isM?'cm':'cb'}">${(avg<0?'−':'')+n2(Math.abs(avg))}</span>) =</span>
+      <input data-ans id="pIn${k}" class="ans ${ok?'ok':''}" inputmode="decimal" autocomplete="off" value="${ok?f1s(isM?D.nm:D.nb):C.val[k]}" aria-label="New ${k}" ${ok||locked||C.pushed?'disabled':''}></div>
+      ${ok?'':`<div class="flex gap-2"><button class="btn btn-main btn-sm" id="pChk${k}" ${locked?'disabled':''}>Check</button><button class="btn btn-ghost btn-sm" id="pShw${k}" ${locked?'disabled':''}>Show me</button></div>`}
+      <div class="text-[13px] font-bold min-h-[18px]" style="color:${ok?'#166534':'#9a3412'}">${C.fb[k]}</div>`; };
+  const both=C.done.m&&C.done.b;
+  return head(6,'Fixing the curve')+`
+  <p class="task">You know the direction. The update rule (gradient descent, same as lesson 1) works out <b>how far</b>, using the two averages from the table:</p>
+  <div class="mathbox"><div class="slabel">The update rule</div><div class="font-extrabold leading-[2] tabnum"><div><span class="cm">m</span> &larr; m − α × average(miss × X)</div><div><span class="cb">b</span> &larr; b − α × average(miss)</div></div>
+    <div class="text-[12.5px] font-bold text-[color:var(--soft)] mt-1">α (step size) = ${ALPHA}. Same rule as before. Only the miss is new: chance minus what happened.</div></div>
+  <div class="rounded-xl px-3 py-3 border-2 border-dashed flex flex-col gap-1.5 text-[15px] font-extrabold" style="border-color:#c7d2fe"><div class="slabel" style="color:var(--line)">Your turn: plug in the numbers</div>${row('m')}${row('b')}</div>
+  ${C.pushed?`<p class="task">One small step: the curve moved toward the sales. Repeat this many times and it settles on the best curve. That is next.</p>`
+    :`<p class="text-[14px] font-bold">${C.busy?'Updating the curve...':both?'Both worked out. Now put them into the equation.':'Work out both new numbers, then update the curve.'}</p>`}
+  <div class="flex items-center justify-between gap-2 border-t border-[color:var(--rule)] pt-3 mt-auto">
+    ${C.pushed?'<button class="btn btn-ghost btn-sm" id="pAgain">Start over</button>':'<span></span>'}
+    ${C.pushed?'<button class="btn btn-main" id="pNext">Next &rarr;</button>':`<button class="btn btn-main" id="pRun" ${both&&!C.busy?'':'disabled'}>Update the curve</button>`}</div>`; },
+  wire(){ const C=S.c6; ['m','b'].forEach(k=>{ const inp=$('pIn'+k); if(inp&&!inp.disabled){ inp.oninput=()=>{C.val[k]=inp.value;}; inp.onkeydown=e=>{ if(e.key==='Enter') plugCheck(k,false); }; }
+      if($('pChk'+k)) $('pChk'+k).onclick=()=>plugCheck(k,false); if($('pShw'+k)) $('pShw'+k).onclick=()=>plugCheck(k,true); });
+    if($('pRun')&&C.done.m&&C.done.b&&!C.busy) $('pRun').onclick=plugRun;
+    if($('pAgain')) $('pAgain').onclick=()=>{ S.c6=fresh().c6; S.fix={...S.first}; update(); };
+    if($('pNext')) $('pNext').onclick=()=>{ go(6); window.scrollTo({top:0,behavior:'smooth'}); }; },
+  done:()=>S.c6.pushed, hint:'Plug in the numbers, then update the curve'};
+function plugCheck(k,shown){ const C=S.c6, D=gdData(S.first), target=k==='m'?D.nm:D.nb, old=k==='m'?S.first.m:S.first.b, avg=k==='m'?D.aex:D.ae;
+  const v=parseFloat(String(C.val[k]).replace(/[−–]/g,'-').replace(/[^0-9.\-]/g,''));
+  if(!shown){ if(isNaN(v)){ C.fb[k]='Type a number.'; update(); return $('pIn'+k)?.focus({preventScroll:true}); }
+    if(Math.abs(v-target)>0.15){ C.tries[k]++; const prod=r2(ALPHA*avg);
+      C.fb[k]=C.tries[k]===1?`Not quite. First do ${ALPHA} × (${n2(avg)}), then subtract that from ${f1s(old)}.`:`${ALPHA} × (${n2(avg)}) = ${n2(prod)}. So ${f1s(old)} − (${n2(prod)}) = ?`;
+      update(); const el=$('pIn'+k); if(el){ el.classList.add('bad'); el.focus({preventScroll:true}); } return; } }
+  C.done[k]=true; C.fb[k]=`${shown?'':'Right! '}${k} goes from ${f1s(old)} to <b>${f1s(target)}</b>.`; update(); if(k==='m') $('pInb')?.focus({preventScroll:true}); }
+function flyNum(fromEl,toEl,text,color){ return new Promise(res=>{ if(!fromEl||!toEl){ res(); return; } const a=fromEl.getBoundingClientRect(), b=toEl.getBoundingClientRect();
+  const el=document.createElement('span'); el.className='flynum'; el.textContent=text; el.style.color=color;
+  const fs=parseFloat(getComputedStyle(fromEl).fontSize), ts=parseFloat(getComputedStyle(toEl).fontSize);
+  el.style.fontSize=fs+'px'; el.style.left=a.left+'px'; el.style.top=a.top+'px'; document.body.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.transform=`translate(${b.left-a.left}px,${b.top-a.top}px) scale(${ts/fs})`; el.style.opacity=0; }));
+  setTimeout(()=>{ el.remove(); res(); },850); }); }
+async function plugRun(){ const C=S.c6; if(C.busy) return; const D=gdData(S.first), T0=S.first, T1={m:D.nm,b:D.nb};
+  C.busy=true; update(); window.scrollTo({top:0,behavior:'smooth'}); await sleep(350);
+  const setT=T=>{ S.fix={...T}; renderChart(); $('cards').innerHTML=cardsFor(); if($('eqM')) $('eqM').textContent=f1s(T.m); if($('eqB')){ $('eqB').textContent=Math.abs(r1(T.b)).toFixed(1); $('eqSign').textContent=r1(T.b)<0?'−':'+'; } };
+  await flyNum($('pInm'),$('eqM'),f1s(T1.m),'#7c3aed'); $('eqM')?.classList.add('glow-m');
+  await anim(1300,e=>setT({m:T0.m+(T1.m-T0.m)*e,b:T0.b})); await sleep(300); $('eqM')?.classList.remove('glow-m');
+  await flyNum($('pInb'),$('eqB'),f1s(T1.b),'#0891b2'); $('eqB')?.classList.add('glow-b');
+  await anim(900,e=>setT({m:T1.m,b:T0.b+(T1.b-T0.b)*e})); await sleep(300); $('eqB')?.classList.remove('glow-b');
+  C.busy=false; C.pushed=true; S.fix=T1; update(); }
+
+/* chapter 7: repeat many times */
+P[6]={html:()=>'', wire(){}, done:()=>S.c7.done, hint:'Run a simulation'};
+function stopPlay(){ S.c7.tok++; S.c7.busy=false; }
+function renderSimBar(){ const I=S.c7, bar=$('c1Bar'), last=I.hist.length?I.hist[I.hist.length-1]:lossRaw(S.first);
+  let verdict='Start from your first curve. Pick a step size and how many times to repeat, then press Simulate.';
+  if(I.busy) verdict=`Repeating... step ${I.steps} of ${I.n}`;
+  else if(I.done){ if(!isFinite(last)||last>5) verdict=`<b style="color:var(--hi)">Step size too big.</b> The curve overshoots and bounces around.`;
+    else if(last<BESTLOSS*1.03) verdict=`<b style="color:#166534">Settled.</b> After ${I.steps} steps the curve has landed on the best fit: chance = squash( ${f1s(BEST.m)} × X ${pb(BEST.b)} ), with a score of ${n2(BESTLOSS)}.`;
+    else if(I.alpha<=0.5) verdict=`<b>Small steps:</b> steady, but slow. After ${I.steps} steps it is still getting there. Try more steps or a bigger step size.`;
+    else verdict=`<b>Getting closer.</b> After ${I.steps} steps it is not quite there yet. Repeat more times to finish.`; }
+  bar.innerHTML=`<div class="w-full flex flex-col gap-3">
+    <div class="flex items-center justify-between gap-3 flex-wrap"><span class="slabel" style="margin:0">Repeat the loop many times</span><span class="text-[13px] font-extrabold text-[color:var(--soft)] tabnum" id="c7Steps">Steps done: ${I.steps} &middot; score now: ${n2(last)}</span></div>
+    <div class="grid gap-4 md:grid-cols-[1fr_1fr_auto] items-center">
+      <label class="flex flex-col gap-1"><span class="text-[13.5px] font-extrabold">Step size α: <span class="tabnum" style="color:var(--line)" id="c7AlphaV">${I.alpha.toFixed(2)}</span></span>
+        <input type="range" min="0.25" max="2" step="0.25" value="${I.alpha}" id="c7Alpha" ${I.busy?'disabled':''} aria-label="Step size"></label>
+      <div class="flex flex-col gap-1"><span class="text-[13.5px] font-extrabold">Repeat</span><div class="flex gap-1.5 flex-wrap">${[10,100,1000,5000].map(n=>`<button class="preset ${I.n===n?'on':''}" data-n="${n}" ${I.busy?'disabled':''}>${n.toLocaleString('en-US')} times</button>`).join('')}</div></div>
+      <div class="flex gap-2"><button class="btn btn-main" id="c7Run" ${I.busy?'disabled':''}>${I.busy?'Simulating...':'Simulate'}</button>${I.done&&!I.busy?'<button class="btn btn-main" id="c8Next">Next: a new listing &rarr;</button>':''}</div></div>
+    <svg id="c7Chart" viewBox="0 0 420 70" style="width:100%;max-width:420px;height:auto" aria-label="Score of the curve, step by step"></svg>
+    <span class="text-[14px] font-bold" id="c7Verdict">${verdict}</span></div>`;
+  renderLossChart();
+  if(!I.busy){ $('c7Alpha').oninput=e=>{ I.alpha=+e.target.value; $('c7AlphaV').textContent=I.alpha.toFixed(2); }; $('c7Alpha').onchange=()=>update();
+    bar.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{ I.n=+b.dataset.n; update(); }); $('c7Run').onclick=runSim; }
+  if($('c8Next')) $('c8Next').onclick=()=>{ go(7); window.scrollTo({top:0,behavior:'smooth'}); };
+}
+function renderLossChart(){ const el=$('c7Chart'); if(!el) return; const I=S.c7, w=420, h=70, n=I.hist.length, mx=(I.hist[0]||lossRaw(S.first))*1.1||1;
+  const xs=i=>4+i/Math.max(n-1,1)*(w-8), ys=v=>h-12-clamp(v/mx,0,1.15)*(h-20);
+  let g=`<line x1="4" x2="${w-4}" y1="${h-12}" y2="${h-12}" stroke="#ebe4d8"/><line x1="4" x2="${w-4}" y1="${ys(BESTLOSS)}" y2="${ys(BESTLOSS)}" stroke="var(--best)" stroke-dasharray="4 4"/><text x="4" y="${h-1}" font-size="9" font-weight="800" fill="#9aa3b2">how bad the curve is, step by step</text>`;
+  if(n>1) g+=`<polyline points="${I.hist.map((v,i)=>`${xs(i)},${ys(isFinite(v)?v:mx*2)}`).join(' ')}" fill="none" stroke="var(--line)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  el.innerHTML=g; }
+async function runSim(){ const I=S.c7, tok=++I.tok; I.busy=true; I.done=false; I.L={...S.first}; I.steps=0; I.trail=[]; I.hist=[lossRaw(S.first)]; update();
+  const dur=I.n<=10?I.n*380:2600, t0=performance.now(), every=Math.max(1,Math.round(I.n/25)), histEvery=Math.max(1,Math.round(I.n/120));
+  await new Promise(res=>{ const frame=t=>{ if(tok!==I.tok||S.ch!==6){ res(); return; }
+      const want=Math.min(I.n,Math.ceil((t-t0)/dur*I.n));
+      while(I.steps<want){ I.L=gdStep(I.L,I.alpha); I.steps++; if(I.steps%histEvery===0||I.steps===I.n) I.hist.push(lossRaw(I.L)); if(I.steps%every===0) I.trail.push({...I.L}); }
+      renderChart(); renderEq(I.L,'Simulate: repeat the loop many times'); renderLossChart(); $('cards').innerHTML=cardsFor();
+      if($('c7Steps')) $('c7Steps').innerHTML=`Steps done: ${I.steps} &middot; score now: ${n2(lossRaw(I.L))}`; if($('c7Verdict')) $('c7Verdict').textContent=`Repeating... step ${I.steps} of ${I.n}`;
+      if(I.steps>=I.n){ res(); return; } requestAnimationFrame(frame); }; requestAnimationFrame(frame); });
+  if(tok!==I.tok) return; I.busy=false; I.done=true; update(); }
+
+/* chapter 8: price a new listing with the learned curve */
+P[7]={html:()=>'', wire(){}, done:()=>false, hint:'The end. Nice work!'};
+function n8Calc(v){ const X=v/10, z=LEARNED.m*X+LEARNED.b; return {X,z:r1(z),zRaw:z,p:sig(r1(z))}; }
+function n8Check(shown){ const C=S.c8, A=n8Calc(C.v), v=parseFloat(String(C.val).replace(/[−–]/g,'-').replace(/[^0-9.\-]/g,''));
+  if(!shown){ if(isNaN(v)){ C.hint='Type a number.'; update(); return $('n8In')?.focus({preventScroll:true}); }
+    if(Math.abs(v-A.zRaw)>0.15){ C.tries++; C.hint=C.tries===1?`Not quite. Multiply ${f1s(LEARNED.m)} by ${A.X.toFixed(1)} first, then add (${f1s(LEARNED.b)}).`:`${f1s(LEARNED.m)} × ${A.X.toFixed(1)} = ${f1s(LEARNED.m*A.X)}. Now add (${f1s(LEARNED.b)}).`; update(); return $('n8In')?.focus({preventScroll:true}); } }
+  C.st=2; C.val=''; C.tries=0; C.hint=''; update(); }
+function renderC8Bar(){ const bar=$('c1Bar'), C=S.c8, A=n8Calc(C.v);
+  if(C.st===0){ bar.innerHTML=`<div class="flex flex-col gap-1 min-w-0 flex-1"><span class="slabel" style="margin:0">Step 1 of 2 &middot; A new listing</span><span class="text-[14.5px] font-bold">A new house just came on the market. Set how many visitors it had with the slider below.</span></div><button class="btn btn-main" id="n8Next0">Next: price it &rarr;</button>`;
+    $('n8Next0').onclick=()=>{ C.st=1; update(); }; return; }
+  if(C.st===1){ bar.innerHTML=`<div class="flex flex-col gap-2 min-w-0 flex-1"><span class="slabel" style="margin:0">Step 2 of 2 &middot; Score it, then squash it</span>
+      <span class="text-[14.5px] font-bold">${C.v} visitors means <b>X = ${A.X.toFixed(1)}</b>. Use your final curve to work out the <b>score</b>:</span>
+      <span class="flex items-center gap-2 flex-wrap text-[17px] font-extrabold tabnum">score = <span class="cm">${f1s(LEARNED.m)}</span> &times; ${A.X.toFixed(1)} ${r1(LEARNED.b)<0?'−':'+'} <span class="cb">${Math.abs(r1(LEARNED.b)).toFixed(1)}</span> =
+        <label class="ansbox ${C.tries&&C.hint?'shake':''}"><input data-ans id="n8In" inputmode="decimal" autocomplete="off" value="${C.val}" aria-label="Score"></label>
+        <button class="btn btn-main btn-sm" id="n8Chk">Check</button><button class="btn btn-ghost btn-sm" id="n8Shw">Show me</button></span>
+      ${C.hint?`<span class="text-[13px] font-bold" style="color:#9a3412">${C.hint}</span>`:''}</div>`;
+    const inp=$('n8In'); inp.oninput=()=>{C.val=inp.value;}; inp.onkeydown=e=>{ if(e.key==='Enter') n8Check(false); }; $('n8Chk').onclick=()=>n8Check(false); $('n8Shw').onclick=()=>n8Check(true); return; }
+  const say=A.p>=.5;
+  bar.innerHTML=`<div class="w-full flex flex-col gap-3"><div class="flex flex-col gap-1"><span class="slabel" style="margin:0">Priced!</span>
+      <span class="text-[15px] font-bold tabnum">score = <span class="cm">${f1s(LEARNED.m)}</span> &times; ${A.X.toFixed(1)} ${r1(LEARNED.b)<0?'−':'+'} <span class="cb">${Math.abs(r1(LEARNED.b)).toFixed(1)}</span> = <b>${f1s(A.z)}</b> &rarr; squash &rarr; <b style="color:var(--line);font-size:20px">${pct(A.p)}</b> chance of selling above asking</span>
+      <span class="text-[14px] font-bold text-[color:var(--soft)]">${say?'Over 50%, so Maya tells the seller: <b style="color:#166534">expect a bidding war.</b>':'Under 50%, so Maya tells the seller: <b style="color:#9a3412">do not count on going above asking.</b>'} Slide the visitors to try other houses.</span></div>
+    <div class="storyend"><div class="storyico" aria-hidden="true">${houseSVG(3,'yes')}</div><div class="min-w-0 flex-1"><div class="disp text-[16px] font-semibold">Back at the realty office</div>
+      <p class="text-[13px] font-bold text-[color:var(--soft)]">Maya can now say how likely a bidding war is, not just yes or no, using a curve built from real sales. That is logistic regression.</p></div>
+      <button class="btn btn-ghost btn-sm shrink-0" id="n8Again">&#8634; Play again</button></div></div>`;
+  $('n8Again').onclick=()=>{ stopPlay(); S=fresh(); go(0); };
+}
+
+/* ---------- navigation ---------- */
+const TITLES=['The past sales','The past sales','Your curve\'s chances','What the curve said','Your misses','The curve as it moves','The curve as it learns','The new listing'];
+const HINTS=['Green sold above asking, orange did not','Each house, as it really sold','The curve gives each house a chance','Tap the card that surprised your curve most','Plus is too keen, minus is too shy','The curve moves toward the sales','Updates on every step','Set its visitors'];
+function renderProg(){ $('prog').innerHTML=CH.map((c,i)=>`<button class="pstep ${i<S.ch?'done':''} ${i===S.ch?'cur':''}" data-c="${i}" aria-label="Chapter ${i+1}: ${c.t}"><span class="pbar"><i></i></span><span class="plabel"><span class="lg:hidden">${i===S.ch?`${i+1}. ${c.s}`:i+1}</span><span class="hidden lg:inline">${i+1}. ${c.t}</span></span></button>`).join('');
+  $('prog').querySelectorAll('.pstep').forEach(b=>b.onclick=()=>go(+b.dataset.c)); }
+function fillUpTo(c){
+  if(c>=2){ S.c2.over=S.c2.under=true; }
+  if(c>=3&&!S.c3.locked){ S.c3.part=2; S.c3.locked=true; S.first={...START}; S.fix={...START}; }
+  if(c>=4&&!S.c4.done){ S.c4={...S.c4,part:2,revealed:true,done:true}; }
+  if(c>=5&&!S.c5.tab){ S.c5={...S.c5,part:2,q:gdData(S.first).ae>0?'keen':'shy',tab:true}; }
+  if(c>=6&&!S.c6.pushed){ const D=gdData(S.first); S.c6={...S.c6,done:{m:true,b:true},pushed:true,fb:{m:`m goes from ${f1s(S.first.m)} to <b>${f1s(D.nm)}</b>.`,b:`b goes from ${f1s(S.first.b)} to <b>${f1s(D.nb)}</b>.`}}; S.fix={m:D.nm,b:D.nb}; }
+  if(c>=7&&!S.c7.done){ S.c7={...S.c7,done:true,L:{...LEARNED},steps:5000,n:5000,hist:[lossRaw(S.first),BESTLOSS]}; }
+}
+function go(c){ fillUpTo(c); stopPlay(); S.ch=c; S.maxCh=Math.max(S.maxCh,c);
+  if(c===4){ S.c5.part=S.c5.tab?S.c5.part:1; }
+  if(c===5&&!S.c6.pushed) S.fix={...S.first};
+  if(c===6&&!S.c7.busy){ if(!S.c7.done){ S.c7.L={...S.first}; S.c7.steps=0; S.c7.trail=[]; S.c7.hist=[lossRaw(S.first)]; } }
+  if(c===7){ if(S.c8.st>2) S.c8.st=0; }
+  update(); renderProg(); $('cardsTitle').textContent=TITLES[c]; $('cardsHint').textContent=HINTS[c]; $('chapChip').textContent=`Chapter ${c+1} of 8`; }
+$('backBtn').onclick=()=>{ if(S.ch>0) go(S.ch-1); };
+$('nextBtn').onclick=()=>{ if(S.ch<7&&P[S.ch].done()){ go(S.ch+1); window.scrollTo({top:0,behavior:'smooth'}); } };
+function update(){ const c=S.ch, b=document.body.classList;
+  const stage=c===4&&S.c5.part===2;
+  b.toggle('nochart',stage); b.toggle('wide',c>=6); b.toggle('c8',c===7); b.toggle('nocards',c===1||(c===2&&S.c3.part===1));
+  b.toggle('showeq',(c===2&&S.c3.part===2)||c>=3&&!stage); b.toggle('nocalc',c===7&&S.c8.st>=2);
+  const eqL=c===2?{m:S.c3.dm,b:S.c3.db}:c===5?S.fix:c===6?(S.c7.L||S.first):c===7?LEARNED:S.first;
+  const eqT=c===2?'Your curve is an equation':c===5?'Your curve, getting fixed':c===6?'Simulate: repeat the loop many times':c===7?'Your final curve':'Your curve';
+  if(!stage&&c>=2&&!(c===2&&S.c3.part===1)) renderEq(eqL,eqT);
+  renderChart();
+  if(stage) renderTable();
+  else if(c===6) renderSimBar();
+  else if(c===7) renderC8Bar();
+  else { $('panel').innerHTML=P[c].html(); if(c===4&&S.c5.part===1) wireWhichWay(); else P[c].wire(); }
+  $('cards').innerHTML=cardsFor();
+  if(c===7&&$('n8R')) $('n8R').oninput=e=>{ S.c8.v=+e.target.value; update(); };
+  const d=P[c].done(), nb=$('nextBtn'); nb.disabled=c===7||!d; nb.style.display=c===7?'none':'';
+  $('hintline').textContent=c===7?P[7].hint:d?'':P[c].hint; $('backBtn').disabled=c===0;
+  if(d&&c<7&&S.maxCh===c){ S.maxCh=c+1; renderProg(); } }
+
+/* ---------- calculator ---------- */
+(function(){
+  let expr='', shown='0', last=null;
+  const KEYS=[['C','clr'],['⌫','back'],['÷','/'],['×','*'],['7'],['8'],['9'],['−','-'],['4'],['5'],['6'],['+','+'],['1'],['2'],['3'],['=','eq'],['0'],['00'],['.']];
+  const calc=$('calc'), keys=$('calcKeys');
+  keys.innerHTML=KEYS.map(([t,v])=>`<button data-k="${v??t}" class="${'+-*/'.includes(v??'_')?'op':v==='eq'?'eq':''}" ${v==='eq'?'style="grid-row:span 2;height:auto"':''}>${t}</button>`).join('');
+  const pretty=e=>e.replace(/\*/g,' × ').replace(/\//g,' ÷ ').replace(/-/g,' − ').replace(/\+/g,' + ');
+  const answerBox=()=>document.querySelector('[data-ans]:not([disabled])');
+  function paint(){ $('calcExpr').textContent=last!=null&&expr===''?'':pretty(expr); $('calcVal').textContent=shown; $('calcUse').style.display=last!=null&&answerBox()?'':'none'; }
+  function evaluate(e){ if(!/^[0-9.+\-*/]+$/.test(e)) return null; try{ const v=Function('"use strict";return ('+e+')')(); return isFinite(v)?Math.round(v*1e6)/1e6:null; }catch(_){ return null; } }
+  function press(k){
+    if(k==='clr'){ expr=''; shown='0'; last=null; }
+    else if(k==='back'){ expr=expr.slice(0,-1); shown=expr?pretty(expr).trim().split(' ').pop()||'0':'0'; }
+    else if(k==='eq'){ const v=evaluate(expr); if(v!=null){ last=v; shown=v.toLocaleString('en-US'); expr=''; } else shown='?'; }
+    else { if(last!=null&&expr===''&&'+-*/'.includes(k)) expr=String(last); else if(last!=null&&expr==='') { last=null; } expr+=k; shown=pretty(expr).trim().split(' ').pop()||k; }
+    paint(); }
+  keys.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) press(b.dataset.k); });
+  $('calcFab').onclick=()=>{ calc.classList.toggle('open'); paint(); };
+  $('calcClose').onclick=()=>calc.classList.remove('open');
+  $('calcUse').onclick=()=>{ const box=answerBox(); if(!box||last==null) return; box.value=String(last); box.dispatchEvent(new Event('input')); box.focus({preventScroll:true}); };
+  document.addEventListener('keydown',e=>{ if(!calc.classList.contains('open')||e.target.tagName==='INPUT') return;
+    const map={'Enter':'eq','=':'eq','Backspace':'back','x':'*','X':'*'};
+    if(e.key==='Escape'){ calc.classList.remove('open'); return; }
+    const k=map[e.key]??(/^[0-9.+\-*/]$/.test(e.key)?e.key:undefined); if(k){ e.preventDefault(); press(k); } });
+})();
+let rt; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(update,80); });
+go(0);
+</script>
+</body>
+</html>
