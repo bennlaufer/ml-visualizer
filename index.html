@@ -26,8 +26,8 @@
   h2{font-family:'Fredoka',sans-serif; font-weight:600; font-size:21px; margin:0;}
   .desc{color:var(--soft); font-weight:700; font-size:14px; line-height:1.45; margin:0;}
   .go{margin-top:auto; font-weight:800; font-size:14px; color:var(--line);}
-  .soon{border-style:dashed; justify-content:center; align-items:center; text-align:center; color:var(--faint); min-height:200px;}
-  .soon h2{color:var(--faint); font-size:18px;}
+  .soon{border-style:dashed; cursor:default;} .soon .pic{filter:grayscale(.55); opacity:.75;} .soon h2{color:#6b7280;}
+  .badge{display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px; background:#f4efe6; color:var(--soft); font-size:11px; letter-spacing:.02em;}
   footer{margin-top:36px; color:var(--faint); font-weight:700; font-size:13px;}
 </style>
 </head>
@@ -54,7 +54,42 @@
       <p class="desc">Price houses by drawing a line, measure how wrong it is with the mean squared error, then fix it step by step with gradient descent.</p>
       <div class="go">Start the lesson &rarr;</div>
     </a>
-    <div class="card soon"><h2>More lessons coming</h2><p class="desc">Each lesson is a single page you can open anywhere.</p></div>
+    <div class="card soon" aria-disabled="true">
+      <div class="pic"><svg viewBox="0 0 300 150" role="img" aria-label="An S-shaped curve separating two groups">
+        <line x1="20" y1="130" x2="290" y2="130" stroke="#e7dccb" stroke-width="2"/>
+        <path d="M20 122 C 120 122, 130 30, 160 30 S 230 28, 290 26" stroke="#4f46e5" stroke-width="4" fill="none" stroke-linecap="round" transform="translate(0 0)"/>
+        <g fill="#e11d48"><circle cx="50" cy="122" r="6"/><circle cx="85" cy="122" r="6"/><circle cx="118" cy="122" r="6"/></g>
+        <g fill="#16a34a"><circle cx="190" cy="30" r="6"/><circle cx="228" cy="30" r="6"/><circle cx="262" cy="30" r="6"/></g>
+      </svg></div>
+      <div class="num">Lesson 2 <span class="badge">Coming soon</span></div>
+      <h2>Logistic regression</h2>
+      <p class="desc">Will this house sell above asking? Bend the line into a curve that answers yes or no.</p>
+    </div>
+    <div class="card soon" aria-disabled="true">
+      <div class="pic"><svg viewBox="0 0 300 150" role="img" aria-label="A small decision tree">
+        <g stroke="#c7c2ff" stroke-width="3"><line x1="150" y1="34" x2="90" y2="78"/><line x1="150" y1="34" x2="210" y2="78"/><line x1="90" y1="86" x2="55" y2="124"/><line x1="90" y1="86" x2="125" y2="124"/></g>
+        <rect x="112" y="16" width="76" height="26" rx="8" fill="#4f46e5"/><text x="150" y="34" font-size="12" font-family="Nunito" font-weight="800" fill="#fff" text-anchor="middle">size &gt; 2k?</text>
+        <rect x="56" y="70" width="68" height="24" rx="8" fill="#eef2ff" stroke="#a5b4fc"/><text x="90" y="86" font-size="11" font-family="Nunito" font-weight="800" fill="#4f46e5" text-anchor="middle">beds &gt; 2?</text>
+        <rect x="178" y="70" width="64" height="24" rx="8" fill="#dcfce7"/><text x="210" y="86" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$450k</text>
+        <rect x="26" y="116" width="58" height="22" rx="8" fill="#dcfce7"/><text x="55" y="131" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$220k</text>
+        <rect x="96" y="116" width="58" height="22" rx="8" fill="#dcfce7"/><text x="125" y="131" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$300k</text>
+      </svg></div>
+      <div class="num">Lesson 3 <span class="badge">Coming soon</span></div>
+      <h2>Decision tree</h2>
+      <p class="desc">Price a house by asking yes-or-no questions, one split at a time.</p>
+    </div>
+    <div class="card soon" aria-disabled="true">
+      <div class="pic"><svg viewBox="0 0 300 150" role="img" aria-label="Several small trees voting">
+        <g transform="translate(30 30)"><circle cx="30" cy="30" r="26" fill="#86efac"/><rect x="26" y="52" width="8" height="30" fill="#a16207"/></g>
+        <g transform="translate(95 18)"><circle cx="30" cy="34" r="30" fill="#4ade80"/><rect x="26" y="60" width="8" height="34" fill="#a16207"/></g>
+        <g transform="translate(165 30)"><circle cx="30" cy="30" r="26" fill="#86efac"/><rect x="26" y="52" width="8" height="30" fill="#a16207"/></g>
+        <g transform="translate(225 38)"><circle cx="24" cy="24" r="21" fill="#4ade80"/><rect x="20" y="42" width="8" height="26" fill="#a16207"/></g>
+        <line x1="20" y1="122" x2="290" y2="122" stroke="#e7dccb" stroke-width="2"/>
+      </svg></div>
+      <div class="num">Lesson 4 <span class="badge">Coming soon</span></div>
+      <h2>Random forest</h2>
+      <p class="desc">Ask many different trees and let them vote. A crowd of guesses beats one.</p>
+    </div>
   </div>
 
 </div>
