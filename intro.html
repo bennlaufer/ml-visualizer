@@ -278,6 +278,38 @@
   #slide-4 .loop-svg{flex:1 1 0; height:0; min-height:180px; max-height:none; margin:0 0 6px;}
   #slide-1 .big-q{margin-bottom:40px;}
   #slide-1 .vs{margin-top:40px;}
+  /* slide 1: blocked-in two-column layout, one card style throughout */
+  #slide-1 .big-q{margin-bottom:28px;}
+  .s1grid{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:24px; align-items:stretch;}
+  #slide-1 .quote{margin:0; max-width:none; background:#fff; border:1px solid var(--rule); border-left:1px solid var(--rule); border-radius:20px; padding:34px 36px 28px; display:flex; flex-direction:column; justify-content:center; position:relative; box-shadow:0 1px 0 rgba(30,36,51,.04),0 6px 20px -12px rgba(30,36,51,.18);}
+  #slide-1 .quote::before{content:"\201C"; font-family:'Fredoka'; font-weight:700; font-size:96px; line-height:.7; color:var(--accent); display:block; margin-bottom:6px;}
+  #slide-1 .quote p{font-size:clamp(24px,2.8vw,34px); line-height:1.25;}
+  #slide-1 .quote cite{margin-top:22px; padding-top:16px; border-top:1px dashed var(--rule); font-size:var(--t-body);}
+  #slide-1 .vs{display:flex; flex-direction:column; gap:24px; margin:0;}
+  #slide-1 .vs-card{flex:1; display:flex; flex-direction:column; justify-content:center; box-shadow:0 1px 0 rgba(30,36,51,.04),0 6px 20px -12px rgba(30,36,51,.18);}
+  @media (max-width:860px){ .s1grid{grid-template-columns:minmax(0,1fr);} }
+  /* slide 1 v3: quote centered on top, two boxes side by side with a red X and a green check */
+  .s1grid{grid-template-columns:minmax(0,1fr); gap:22px;}
+  #slide-1 .quote{text-align:center; align-items:center; padding:20px 40px 18px;}
+  #slide-1 .quote::before{font-size:72px; height:40px;}
+  #slide-1 .quote::before{margin-bottom:0;}
+  #slide-1 .quote p{max-width:900px; font-size:clamp(24px,3.2vw,38px);}
+  #slide-1 .quote cite{border-top:0; padding-top:0; margin-top:12px;}
+  #slide-1 .vs{flex-direction:row; gap:24px;}
+  #slide-1 .vs-card{position:relative; padding-right:76px;}
+  .vs-badge{position:absolute; top:18px; right:18px; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
+  .vs-badge svg{width:24px; height:24px;}
+  .vs-badge.no{background:var(--hi);} .vs-badge.yes{background:var(--best);}
+  #slide-1 .vs-card.ml{border:2px solid var(--best); background:linear-gradient(180deg,#f0fdf4,#fff);}
+  #slide-1 .vs-card.ml .vs-t{color:var(--best);}
+  @media (max-width:760px){ #slide-1 .vs{flex-direction:column;} }
+  /* slide 1 v4: quote marks before and after the quote text */
+  #slide-1 .quote{display:grid; grid-template-columns:auto minmax(0,1fr) auto; column-gap:18px; align-items:center; padding:24px 32px 18px;}
+  #slide-1 .quote::before{content:"\201C"; grid-column:1; grid-row:1; font-size:96px; height:auto; line-height:.8; align-self:start; margin:0; padding-top:6px;}
+  #slide-1 .quote::after{content:"\201D"; grid-column:3; grid-row:1; font-family:'Fredoka'; font-weight:700; font-size:96px; line-height:.8; color:var(--accent); align-self:start; padding-top:6px;}
+  #slide-1 .quote p{grid-column:2; grid-row:1; margin:0; max-width:none;}
+  #slide-1 .quote cite{grid-column:2; grid-row:2; margin-top:10px;}
+  @media (max-width:640px){ #slide-1 .quote::before,#slide-1 .quote::after{font-size:56px;} #slide-1 .quote{column-gap:10px; padding:16px;} }
 </style>
 </head>
 <body>
@@ -306,21 +338,25 @@
   <div class="stage" id="stage">
   <section class="slide on" id="slide-1" data-i="0">
     <h1 class="big-q" id="title">What is machine learning?</h1>
-  <blockquote class="quote" id="quote">
-    <p>&ldquo;Field of study that gives computers the ability to learn without being explicitly programmed.&rdquo;</p>
+  <div class="s1grid" id="s1grid">
+    <blockquote class="quote" id="quote">
+    <p>Field of study that gives computers the ability to learn without being explicitly programmed.</p>
     <cite>Arthur Samuel</cite>
   </blockquote>
     <div class="vs" id="vs">
       <div class="vs-card" id="vs-old">
+        <span class="vs-badge no" aria-label="not this"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg></span>
         <div class="vs-t">Regular programming</div>
         <div class="vs-flow"><span class="vs-chip rules">Rules</span><span class="vs-plus">+</span><span class="vs-chip data">Data</span><span class="vs-arrow">&rarr;</span><span class="vs-chip ans">Answers</span></div>
         <p>You write the rules by hand.</p>
       </div>
       <div class="vs-card ml" id="vs-ml">
+        <span class="vs-badge yes" aria-label="this one"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <div class="vs-t">Machine learning</div>
         <div class="vs-flow"><span class="vs-chip data">Data</span><span class="vs-plus">+</span><span class="vs-chip ans">Answers</span><span class="vs-arrow">&rarr;</span><span class="vs-chip rules">Rules</span></div>
         <p>The computer finds the rules itself.</p>
       </div>
+    </div>
     </div>
 
   </section>
@@ -554,7 +590,7 @@
   const AX='<line x1="8" y1="62" x2="152" y2="62" stroke="#e1d8c7" stroke-width="2"/>';
   const PIC=[
     '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="A straight line through points">'+AX+'<line x1="10" y1="54" x2="150" y2="12" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round"/><g fill="#1e2433"><circle cx="30" cy="52" r="3.5"/><circle cx="62" cy="38" r="3.5"/><circle cx="92" cy="36" r="3.5"/><circle cx="128" cy="18" r="3.5"/></g></svg>',
-    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="An S-shaped curve between two groups">'+AX+'<path d="M10 56 C 60 56, 70 10, 80 10 S 110 10, 150 10" stroke="#4f46e5" stroke-width="3.5" fill="none" stroke-linecap="round" transform="translate(0 0)"/><g fill="#e11d48"><circle cx="24" cy="56" r="3.5"/><circle cx="46" cy="56" r="3.5"/></g><g fill="#16a34a"><circle cx="116" cy="10" r="3.5"/><circle cx="138" cy="10" r="3.5"/></g></svg>',
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="An S-shaped curve between two groups">'+AX+'<path d="M10 56 C 60 56, 70 10, 80 10 S 110 10, 150 10" stroke="#4f46e5" stroke-width="3.5" fill="none" stroke-linecap="round" transform="translate(0 0)"/><g fill="#e11d48"><circle cx="24" cy="56" r="3.5"/><circle cx="46" cy="56" r="3.5"/><circle cx="70" cy="56" r="3.5"/></g><g fill="#16a34a"><circle cx="100" cy="10" r="3.5"/><circle cx="116" cy="10" r="3.5"/><circle cx="138" cy="10" r="3.5"/></g></svg>',
     '<svg viewBox="0 0 220 120" class="mpic tree" role="img" aria-label="A small decision tree"><g stroke="#c7c2ff" stroke-width="3"><line x1="110" y1="26" x2="62" y2="62"/><line x1="110" y1="26" x2="162" y2="62"/><line x1="62" y1="70" x2="34" y2="102"/><line x1="62" y1="70" x2="92" y2="102"/></g><rect x="70" y="8" width="80" height="26" rx="8" fill="#4f46e5"/><text x="110" y="26" font-size="12" font-family="Nunito" font-weight="800" fill="#fff" text-anchor="middle">size &gt; 2k?</text><rect x="26" y="56" width="72" height="24" rx="8" fill="#eef2ff" stroke="#a5b4fc"/><text x="62" y="72" font-size="11" font-family="Nunito" font-weight="800" fill="#4f46e5" text-anchor="middle">beds &gt; 2?</text><rect x="132" y="56" width="60" height="24" rx="8" fill="#dcfce7"/><text x="162" y="72" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$450k</text><rect x="6" y="96" width="56" height="22" rx="8" fill="#dcfce7"/><text x="34" y="111" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$220k</text><rect x="64" y="96" width="56" height="22" rx="8" fill="#dcfce7"/><text x="92" y="111" font-size="11" font-family="Nunito" font-weight="800" fill="#166534" text-anchor="middle">$300k</text></svg>',
     '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Two groups of points with a center each"><g fill="#a5b4fc"><circle cx="30" cy="22" r="3.5"/><circle cx="44" cy="34" r="3.5"/><circle cx="26" cy="42" r="3.5"/><circle cx="48" cy="18" r="3.5"/></g><g fill="#fdba74"><circle cx="112" cy="40" r="3.5"/><circle cx="130" cy="28" r="3.5"/><circle cx="124" cy="54" r="3.5"/><circle cx="144" cy="44" r="3.5"/></g><circle cx="37" cy="29" r="7" fill="none" stroke="#4f46e5" stroke-width="3"/><circle cx="127" cy="42" r="7" fill="none" stroke="#d97706" stroke-width="3"/></svg>'
   ];
@@ -567,7 +603,7 @@
   ];
   const ERR=[
     '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Misses between points and the line">'+AX+'<line x1="10" y1="54" x2="150" y2="12" stroke="#c7c2ff" stroke-width="3" stroke-linecap="round"/><g stroke="'+R+'" stroke-width="3.5" stroke-linecap="round"><line x1="30" y1="57" x2="30" y2="48"/><line x1="62" y1="28" x2="62" y2="38"/><line x1="92" y1="41" x2="92" y2="29"/><line x1="128" y1="8" x2="128" y2="19"/></g><g fill="#1e2433"><circle cx="30" cy="57" r="3.5"/><circle cx="62" cy="28" r="3.5"/><circle cx="92" cy="41" r="3.5"/><circle cx="128" cy="8" r="3.5"/></g></svg>',
-    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Misses between points and the S-curve">'+AX+'<path d="M10 56 C 60 56, 70 10, 80 10 S 110 10, 150 10" stroke="#c7c2ff" stroke-width="3" fill="none" stroke-linecap="round"/><g stroke="'+R+'" stroke-width="3.5" stroke-linecap="round"><line x1="46" y1="56" x2="46" y2="55"/><line x1="100" y1="10" x2="100" y2="10.5"/><line x1="70" y1="56" x2="70" y2="26"/></g><g fill="#e11d48"><circle cx="24" cy="56" r="3.5"/><circle cx="46" cy="56" r="3.5"/><circle cx="70" cy="56" r="3.5"/></g><g fill="#16a34a"><circle cx="116" cy="10" r="3.5"/><circle cx="138" cy="10" r="3.5"/><circle cx="100" cy="10" r="3.5"/></g></svg>',
+    '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Misses between points and the S-curve">'+AX+'<path d="M10 50 C 60 50, 70 16, 80 16 S 110 16, 150 16" stroke="#c7c2ff" stroke-width="3" fill="none" stroke-linecap="round"/><g stroke="'+R+'" stroke-width="3.5" stroke-linecap="round"><line x1="24" y1="56" x2="24" y2="49.0"/><line x1="46" y1="56" x2="46" y2="42.3"/><line x1="70" y1="56" x2="70" y2="23.3"/><line x1="100" y1="10" x2="100" y2="16"/><line x1="116" y1="10" x2="116" y2="16"/><line x1="138" y1="10" x2="138" y2="16"/></g><g fill="#e11d48"><circle cx="24" cy="56" r="3.5"/><circle cx="46" cy="56" r="3.5"/><circle cx="70" cy="56" r="3.5"/></g><g fill="#16a34a"><circle cx="100" cy="10" r="3.5"/><circle cx="116" cy="10" r="3.5"/><circle cx="138" cy="10" r="3.5"/></g></svg>',
     '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Misses between points and the step line">'+AX+'<path d="M10 50 H64 V30 H104 V12 H150" stroke="#c7c2ff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><g stroke="'+R+'" stroke-width="3.5" stroke-linecap="round"><line x1="24" y1="40" x2="24" y2="50"/><line x1="48" y1="58" x2="48" y2="50"/><line x1="84" y1="42" x2="84" y2="30"/><line x1="122" y1="4" x2="122" y2="12"/></g><g fill="#1e2433"><circle cx="24" cy="40" r="3.5"/><circle cx="48" cy="58" r="3.5"/><circle cx="84" cy="42" r="3.5"/><circle cx="122" cy="4" r="3.5"/></g></svg>',
     '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Distances from points to their group center"><g stroke="'+R+'" stroke-width="2.5" stroke-dasharray="4 3" stroke-linecap="round"><line x1="30" y1="22" x2="37" y2="29"/><line x1="44" y1="34" x2="37" y2="29"/><line x1="26" y1="42" x2="37" y2="29"/><line x1="48" y1="18" x2="37" y2="29"/><line x1="112" y1="40" x2="127" y2="42"/><line x1="130" y1="28" x2="127" y2="42"/><line x1="124" y1="54" x2="127" y2="42"/><line x1="144" y1="44" x2="127" y2="42"/></g><g fill="#a5b4fc"><circle cx="30" cy="22" r="3.5"/><circle cx="44" cy="34" r="3.5"/><circle cx="26" cy="42" r="3.5"/><circle cx="48" cy="18" r="3.5"/></g><g fill="#fdba74"><circle cx="112" cy="40" r="3.5"/><circle cx="130" cy="28" r="3.5"/><circle cx="124" cy="54" r="3.5"/><circle cx="144" cy="44" r="3.5"/></g><circle cx="37" cy="29" r="6" fill="none" stroke="#4f46e5" stroke-width="3"/><circle cx="127" cy="42" r="6" fill="none" stroke="#d97706" stroke-width="3"/></svg>'
   ];
