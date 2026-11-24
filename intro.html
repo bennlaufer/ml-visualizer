@@ -30,9 +30,79 @@
   .eyebrow{font-family:'Fredoka'; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);}
   .lead{color:var(--soft); font-weight:700; font-size:17px; max-width:640px; margin:10px 0 0;}
   .stage{min-width:0;}
-  .slide{display:block; min-width:0; margin-top:56px;}
-  #slide-1{margin-top:0;}
-  #slide-2{margin-top:14px;}
+  .stage{min-height:calc(100vh - 200px);}
+  .slide{display:none; min-width:0;}
+  .slide.on{display:flex; flex-direction:column; justify-content:center; min-height:calc(100vh - 200px); animation:slidein .4s ease both;}
+  @keyframes slidein{from{opacity:0; transform:translateX(24px)} to{opacity:1; transform:none}}
+  .nav{position:sticky; bottom:0; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:14px; background:var(--bg); border-top:1px solid var(--rule); padding:12px 0 14px; margin-top:20px;}
+  .prog{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; min-width:0; margin-top:18px;}
+  .pstep{display:flex; flex-direction:column; gap:5px; align-items:flex-start; background:none; border:0; padding:0; text-align:left; cursor:pointer; color:var(--faint); font-family:'Nunito'; font-size:12px; font-weight:700; min-width:0;}
+  .pbar{height:6px; width:100%; border-radius:99px; background:#e7dfd1; overflow:hidden; display:block;}
+  .pbar i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .4s;}
+  .pstep.done .pbar i{width:100%;} .pstep.cur .pbar i{width:100%; background:var(--line);}
+  .pstep.done{color:var(--soft);} .pstep.cur{color:var(--line);}
+  .plabel{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;}
+  .nav .btn{white-space:nowrap;}
+  /* roomier slide 1 and 2 */
+  #slide-1 .quote{padding:34px 36px; max-width:none; margin-top:0;}
+  #slide-1 .quote p{font-size:clamp(26px,4.6vw,44px);}
+  #slide-1 .quote cite{font-size:17px; margin-top:12px;}
+  #slide-3 #lead{font-size:clamp(22px,3.2vw,32px); margin:0 0 26px;}
+  #slide-1 .quote p{font-size:clamp(26px,4.4vw,44px);}
+  .big-q{font-family:'Fredoka'; font-weight:600; font-size:clamp(32px,5vw,52px); line-height:1.1; margin:0 0 26px;}
+  #slide-2 .big-q{margin-bottom:30px;}
+  .uses{margin-top:0;}
+  #slide-1 .quote{margin-bottom:0;}
+  .vs{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:22px;}
+  .vs-card{background:#fff; border:1px solid var(--rule); border-radius:20px; padding:20px 22px; min-width:0;}
+  .vs-card.ml{border:2px solid var(--line); background:linear-gradient(180deg,#f6f5ff,#fff);}
+  .vs-t{font-family:'Fredoka'; font-weight:600; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--soft);}
+  .vs-card.ml .vs-t{color:var(--line);}
+  .vs-flow{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:12px 0 10px;}
+  .vs-chip{font-family:'Fredoka'; font-weight:600; font-size:20px; border-radius:12px; padding:8px 14px;}
+  .vs-chip.rules{background:#fff1d6; color:#92400e;} .vs-chip.data{background:#e0e7ff; color:#4338ca;} .vs-chip.ans{background:#dcfce7; color:#166534;}
+  .vs-plus,.vs-arrow{font-family:'Fredoka'; font-weight:600; font-size:22px; color:var(--faint);}
+  .vs-card p{font-size:17px; font-weight:700; color:var(--soft);}
+  @media (max-width:760px){ .vs{grid-template-columns:minmax(0,1fr);} }
+  .uses-title{font-family:'Fredoka'; font-weight:600; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:12px;}
+  .use-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px;}
+  .use{background:#fff; border:1px solid var(--rule); border-radius:20px; padding:26px 22px; display:flex; flex-direction:column; align-items:flex-start; gap:4px; min-width:0;}
+  .use svg{width:58px; height:58px; margin-bottom:10px;}
+  .use b{font-family:'Fredoka'; font-weight:600; font-size:23px; line-height:1.15;}
+  .use span{font-size:16px; font-weight:700; color:var(--soft);}
+  @media (max-width:640px){ .use-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  #slide-4 .demo{align-items:stretch; grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  #slide-4 .demo>.card-w{height:100%;}
+  #slide-5 .mpanel{min-height:280px; align-items:stretch;}
+  #slide-5 .mpanel.closed{visibility:hidden;}
+  #slide-5 .mpanel .mrow{min-height:280px; animation:rise .55s cubic-bezier(.2,.8,.3,1) both;}
+  #slide-5 .mpanel .mrow:nth-child(2){animation-delay:.12s;} #slide-5 .mpanel .mrow:nth-child(3){animation-delay:.24s;}
+  #slide-5 .mpanel .flag{animation:rise .5s .4s both;}
+  @keyframes rise{from{opacity:0; transform:translateY(22px) scale(.97)} to{opacity:1; transform:none}}
+  .mpanel .chip{animation:chipin .45s cubic-bezier(.3,1.5,.5,1) both;}
+  .mpanel .chip:nth-child(1){animation-delay:.3s;} .mpanel .chip:nth-child(2){animation-delay:.42s;} .mpanel .chip:nth-child(3){animation-delay:.54s;}
+  @keyframes chipin{from{opacity:0; transform:scale(.4)} to{opacity:1; transform:none}}
+  .mpanel .mpic{animation:picin .7s .35s cubic-bezier(.2,.8,.3,1) both; transform-origin:left bottom;}
+  @keyframes picin{from{opacity:0; transform:scale(.8) translateY(10px)} to{opacity:1; transform:none}}
+  .mpanel .mrow:last-of-type .mpic{animation-delay:.5s;}
+  #slide-3 .moves{gap:20px;}
+  #slide-3 .move{padding:26px 24px; gap:12px;}
+  #slide-3 .move .n{width:38px; height:38px; font-size:18px;}
+  #slide-3 .move h3{font-size:25px;}
+  #slide-3 .move p{font-size:18px;}
+  #slide-3 .loopback{height:70px; margin-top:0;}
+  #slide-3 .loopback .lbl{font-size:18px;}
+  #slide-5 .tab{font-size:16px; padding:10px 20px;}
+  #slide-5 .pick{font-size:21px; padding:12px 20px;}
+  /* fit the demo on one screen */
+  #slide-4 .eyebrow, #slide-4 #demo-section>.lead{display:none;}
+  #slide-4 .demo{margin-top:0;}
+  #slide-4 #chart{max-height:270px;}
+  #slide-4 .hcard svg{max-height:46px;}
+  #slide-4 .hcards{margin-top:6px;}
+  #slide-4 .caption{min-height:84px; margin-top:8px;}
+  #slide-4 .loop-svg{max-height:none; width:100%; margin:6px 0 4px;}
+  #slide-4 .pad{padding:12px;}
   .quote{margin:34px 0 0; padding:20px 24px; border-left:6px solid var(--accent); background:#fff7ed; border-radius:0 14px 14px 0; max-width:860px;}
   .quote p{font-family:'Fredoka'; font-weight:500; font-size:clamp(22px,4vw,32px); line-height:1.25; color:var(--ink);}
   .quote .ml{color:var(--line); font-weight:600;}
@@ -109,6 +179,8 @@
   @media (max-width:640px){
     .plabel{display:none;}
     .nav{gap:8px;}
+    .plabel{display:none;}
+    .nav{gap:8px;}
     .moves{grid-template-columns:minmax(0,1fr);}
     .row{grid-template-columns:minmax(0,1fr);} .row.head{display:none;}
     .row>div:not(:first-child)::before{content:attr(data-h) ": "; font-weight:800; color:var(--faint);}
@@ -139,7 +211,6 @@
   @media (max-width:1000px){ .models{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:560px){ .models{grid-template-columns:minmax(0,1fr);} }
   .mpanel{margin-top:14px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; animation:fadein .3s ease;}
-  .mpanel[hidden]{display:none;}
   .mpanel .mrow{background:#fff; border:1px solid var(--rule); border-radius:14px; padding:12px 14px;}
   .mpanel .mrow{display:flex; flex-direction:column; gap:10px; padding:16px 18px; min-height:210px;}
   .mpanel .mrow p{font-family:'Fredoka'; font-weight:500; font-size:19px; line-height:1.3;}
@@ -174,6 +245,33 @@
   .tcell .flag{display:inline-block; margin-top:8px; font-size:12px; font-weight:800; background:var(--lo-soft); color:#92400e; border-radius:99px; padding:2px 10px;}
   @keyframes fadein{from{opacity:0} to{opacity:1}}
   @media (max-width:900px){ .trio{grid-template-columns:minmax(0,1fr);} }
+
+  /* ===== consistent type scale across all slides ===== */
+  :root{ --t-title:clamp(30px,4.2vw,44px); --t-card:23px; --t-body:18px; --t-small:14px; }
+  .slide .big-q{font-family:'Fredoka'; font-weight:600; font-size:var(--t-title); line-height:1.12; margin:0 0 24px; max-width:none;}
+  .slide .eyebrow{display:none;}
+  #slide-1 .quote p, #slide-1 .quote p{font-size:clamp(24px,3.4vw,34px);}
+  #slide-1 .quote cite{font-size:var(--t-body);}
+  .slide .move h3, .slide .use b, .slide .vs-card .vs-chip{font-size:var(--t-card);}
+  .slide .move p, .slide .use span, .slide .vs-card p, .slide .caption p, .slide .mpanel .mrow p{font-size:var(--t-body); line-height:1.4;}
+  .slide .vs-t, .slide .mrow small, .slide .uses-title{font-size:var(--t-small);}
+  #slide-3 .loopback .lbl{font-size:var(--t-body);}
+  .slide .pick, .slide .tab{font-size:var(--t-body);}
+  #slide-4 .big-q{margin-bottom:14px;}
+  #slide-5 .big-q{margin-bottom:18px;}
+  #slide-3 .big-q{max-width:900px;}
+  .slide.on{justify-content:flex-start; padding-top:82px;}
+  #slide-4 #chart{max-height:250px;}
+  .slide .big-q{min-height:1.12em;}
+  /* tighter, bigger visuals in the model boxes */
+  .mpanel .mrow .mpic{max-width:none; width:100%; max-height:150px; margin-top:12px;}
+  .mpanel .mrow .mpic.tree{max-width:none; max-height:160px;}
+  .mpanel .chips{flex-direction:column; align-items:flex-start; justify-content:space-evenly; flex:1; gap:8px; margin-top:8px;}
+  .mpanel .chip{font-size:20px; padding:6px 16px;}
+  #slide-4 #side-card{display:flex; flex-direction:column;}
+  #slide-4 .loop-svg{flex:1 1 auto; min-height:0; max-height:none; height:auto; margin:0 0 6px;}
+  #slide-1 .big-q{margin-bottom:40px;}
+  #slide-1 .vs{margin-top:40px;}
 </style>
 </head>
 <body>
@@ -187,20 +285,54 @@
     <a class="back" href="index.html">&larr; All lessons</a>
   </div>
 
+      <div class="prog" id="prog">
+      <button class="pstep cur" data-i="0"><span class="pbar"><i></i></span><span class="plabel">What is ML</span></button>
+      <button class="pstep" data-i="1"><span class="pbar"><i></i></span><span class="plabel">You use it</span></button>
+      <button class="pstep" data-i="2"><span class="pbar"><i></i></span><span class="plabel">Three steps</span></button>
+      <button class="pstep" data-i="3"><span class="pbar"><i></i></span><span class="plabel">Try it</span></button>
+      <button class="pstep" data-i="4"><span class="pbar"><i></i></span><span class="plabel">Any model</span></button>
+    </div>
+
   <div class="stage" id="stage">
   <section class="slide on" id="slide-1" data-i="0">
+    <h1 class="big-q" id="title">What is machine learning?</h1>
   <blockquote class="quote" id="quote">
-    <p><b class="ml">Machine learning:</b> &ldquo;Field of study that gives computers the ability to learn without being explicitly programmed.&rdquo;</p>
+    <p>&ldquo;Field of study that gives computers the ability to learn without being explicitly programmed.&rdquo;</p>
     <cite>Arthur Samuel</cite>
   </blockquote>
+    <div class="vs" id="vs">
+      <div class="vs-card" id="vs-old">
+        <div class="vs-t">Regular programming</div>
+        <div class="vs-flow"><span class="vs-chip rules">Rules</span><span class="vs-plus">+</span><span class="vs-chip data">Data</span><span class="vs-arrow">&rarr;</span><span class="vs-chip ans">Answers</span></div>
+        <p>You write the rules by hand.</p>
+      </div>
+      <div class="vs-card ml" id="vs-ml">
+        <div class="vs-t">Machine learning</div>
+        <div class="vs-flow"><span class="vs-chip data">Data</span><span class="vs-plus">+</span><span class="vs-chip ans">Answers</span><span class="vs-arrow">&rarr;</span><span class="vs-chip rules">Rules</span></div>
+        <p>The computer finds the rules itself.</p>
+      </div>
+    </div>
 
-  <div class="heroline">
-    <p class="lead" id="lead">Almost every model learns the same way: three steps, on repeat.</p>
-  </div>
   </section>
 
 
-  <section class="slide" id="slide-2" data-i="1"><div id="moves-section">
+  <section class="slide" id="slide-2" data-i="1">
+    <h1 class="big-q" id="title2">You already use it</h1>
+    <div class="uses" id="uses">
+      
+      <div class="use-grid">
+        <div class="use" id="use-chat"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 9h26a3 3 0 0 1 3 3v15a3 3 0 0 1-3 3H19l-8 6v-6H7a3 3 0 0 1-3-3V12a3 3 0 0 1 3-3z" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2.5" stroke-linejoin="round"/><circle cx="14" cy="20" r="2" fill="#4f46e5"/><circle cx="21" cy="20" r="2" fill="#4f46e5"/><circle cx="28" cy="20" r="2" fill="#4f46e5"/></svg><b>AI chat</b><span>ChatGPT, Claude</span></div>
+        <div class="use" id="use-car"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 24l3-9a3 3 0 0 1 3-2h16a3 3 0 0 1 3 2l3 9v6H6z" fill="#ffe4e9" stroke="#e11d48" stroke-width="2.5" stroke-linejoin="round"/><circle cx="13" cy="30" r="3.5" fill="#fff" stroke="#e11d48" stroke-width="2.5"/><circle cx="27" cy="30" r="3.5" fill="#fff" stroke="#e11d48" stroke-width="2.5"/><path d="M11 20h18" stroke="#e11d48" stroke-width="2.5" stroke-linecap="round"/></svg><b>Self-driving cars</b><span>Tesla, Waymo</span></div>
+        <div class="use" id="use-reco"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="8" width="32" height="24" rx="5" fill="#ccfbf1" stroke="#0d9488" stroke-width="2.5"/><path d="M17 15l9 5-9 5z" fill="#0d9488"/></svg><b>Recommendations</b><span>Netflix, Spotify</span></div>
+        <div class="use" id="use-face"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 14V9a3 3 0 0 1 3-3h5M26 6h5a3 3 0 0 1 3 3v5M34 26v5a3 3 0 0 1-3 3h-5M14 34H9a3 3 0 0 1-3-3v-5" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"/><circle cx="15" cy="17" r="1.8" fill="#d97706"/><circle cx="25" cy="17" r="1.8" fill="#d97706"/><path d="M14 25c3 3 9 3 12 0" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"/></svg><b>Face unlock</b><span>Face ID</span></div>
+        <div class="use" id="use-spam"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5l13 5v9c0 8-6 13-13 16C13 32 7 27 7 19v-9z" fill="#dcfce7" stroke="#15803d" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 20l4 4 8-8" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Spam and fraud filters</b><span>Gmail, your bank</span></div>
+        <div class="use" id="use-voice"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="14" y="5" width="12" height="20" rx="6" fill="#f1efff" stroke="#6d28d9" stroke-width="2.5"/><path d="M9 20a11 11 0 0 0 22 0M20 31v5" fill="none" stroke="#6d28d9" stroke-width="2.5" stroke-linecap="round"/></svg><b>Voice assistants</b><span>Siri, Alexa</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="slide-3" data-i="2"><div id="moves-section">
+    <h1 class="big-q" id="title3">Almost every model learns the same way: three steps, on repeat</h1>
     <div class="moves">
       <div class="card-w move" id="move-1">
         <div class="n" style="background:var(--c1)">1</div>
@@ -223,9 +355,9 @@
     </div>
   </div></section>
 
-  <section class="slide" id="slide-3" data-i="2"><div id="demo-section">
+  <section class="slide" id="slide-4" data-i="3"><div id="demo-section">
     <div class="eyebrow">Try it</div>
-    <h2>Watch a line learn house prices</h2>
+    <h2 class="big-q" id="title4">Watch a line learn house prices</h2>
     <p class="lead" style="font-size:15.5px">The model is a line with two dials, <b>m</b> (steepness) and <b>b</b> (start). Press <b>Start</b> and watch the line.</p>
 
     <div class="demo">
@@ -248,16 +380,16 @@
         </div>
       </div>
       <div class="card-w pad" id="chart-card">
-        <svg id="chart" viewBox="0 0 560 360" role="img" aria-label="Five house sales and a line the model is fitting"></svg>
+        <svg id="chart" viewBox="0 14 545 332" role="img" aria-label="Five house sales and a line the model is fitting"></svg>
                 <div class="hcards" id="hcards"></div>
         
       </div>
     </div>
   </div></section>
 
-  <section class="slide" id="slide-4" data-i="3"><div id="swap-section">
+  <section class="slide" id="slide-5" data-i="4"><div id="swap-section">
     <div class="eyebrow">Any model</div>
-    <h2>The model picks three things</h2>
+    <h2 class="big-q" id="title5">The model picks three things</h2>
     <div class="picks" id="picks">
       <div class="pick" style="--pc:var(--best)"><b>1</b> What it predicts</div>
       <div class="pick" style="--pc:var(--c1)"><b>2</b> The function it predicts with</div>
@@ -269,14 +401,15 @@
       <button class="tab" data-k="2" aria-expanded="false">Decision tree</button>
       <button class="tab" data-k="3" aria-expanded="false">K-means clustering</button>
     </div>
-    <div class="mpanel" id="mpanel" hidden></div>
+    <div class="mpanel closed" id="mpanel"></div>
   </div></section>
   </div>
 
-<div class="card-w cta" id="cta">
-    <div><h3>Ready for real houses?</h3><p>Lesson 1 runs these steps by hand.</p></div>
-    <a class="go" href="linear-regression.html">Start Lesson 1 &rarr;</a>
-  </div>
+<nav class="nav" id="nav" aria-label="Slides">
+    <button class="btn" id="nav-back">&larr; Back</button>
+
+    <button class="btn main" id="nav-next">Continue &rarr;</button>
+  </nav>
 </div>
 
 <script>
@@ -369,10 +502,10 @@
   function render(){
     drawChart(); drawHouses();
     /* send each animated house flying from its card to its spot on the graph */
-    const cs=$('chart').getBoundingClientRect(), k=cs.width/560;
+    const cs=$('chart').getBoundingClientRect(), k=cs.width/545;
     document.querySelectorAll('#chart .hdrop').forEach(gg=>{ const i=+gg.id.split('-')[1], cardSvg=document.querySelector('#house-'+i+' svg'); if(!cardSvg||!k) return;
       const r=cardSvg.getBoundingClientRect(), tx=+gg.dataset.tx, ty=+gg.dataset.ty;
-      gg.style.setProperty('--dx',(((r.left+r.width/2-cs.left)/k)-tx)+'px'); gg.style.setProperty('--dy',(((r.top+r.height*0.85-cs.top)/k)-ty)+'px'); gg.style.setProperty('--s',Math.max(1,Math.min(3,(r.width*0.6/k)/28))); });
+      gg.style.setProperty('--dx',(((r.left+r.width/2-cs.left)/k)-tx)+'px'); gg.style.setProperty('--dy',(((r.top+r.height*0.85-cs.top)/k+14)-ty)+'px'); gg.style.setProperty('--s',Math.max(1,Math.min(3,(r.width*0.6/k)/28))); });
     for(let i=0;i<3;i++) $('n'+i).classList.toggle('on',i===S.phase);
     const cap=S.phase<0?{t:'Ready',c:'var(--soft)',p:'Press Start. The model will place a guess for each house on its line.',m:''}:CAP[S.phase](); const box=$('caption');
     box.style.borderColor=['#ebe4d8','#4f46e5','#e11d48','#0d9488'][S.phase+1];
@@ -431,7 +564,7 @@
   const MODELS=[
     ['How much? A number, like a price.','A straight line','The average miss, where big misses count extra',''],
     ['Yes or no? Will it sell above asking?','A line bent into an S-shape','Confident and wrong gets punished the most',''],
-    ['A number or a yes/no.','A chain of yes-or-no questions','How far off each group is, or how mixed it is',''],
+    ['A number<br>or a yes/no','A chain of yes-or-no questions','How far off each group is, or how mixed it is',''],
     ['Which groups are hiding in my data?','Group centers, each point joins the closest one','Total distance from each point to its center','K-means is unsupervised, which means there is no target you are trying to predict, like a housing price.']
   ];
   let openK=-1;
@@ -439,14 +572,30 @@
     openK=(k===openK)?-1:k;
     document.querySelectorAll('.tab').forEach(t=>{ const on=+t.dataset.k===openK; t.classList.toggle('on',on); t.setAttribute('aria-expanded',on); });
     const box=$('mpanel');
-    if(openK<0){ box.hidden=true; box.innerHTML=''; return; }
+    if(openK<0){ box.classList.add('closed'); box.innerHTML=''; return; }
     const m=MODELS[openK];
     box.innerHTML='<div class="mrow" id="mrow-solves"><small>What it predicts</small><p>'+m[0]+'</p>'+SOL[openK]+'</div><div class="mrow eq" id="mrow-eq"><small>Function</small>'+(m[1]?'<p>'+m[1]+'</p>':'')+PIC[openK]+'</div><div class="mrow er" id="mrow-err"><small>Predictions assessment</small><p>'+m[2]+'</p>'+ERR[openK]+'</div>'+(m[3]?'<span class="flag">'+m[3]+'</span>':'');
-    box.hidden=false; box.style.animation='none'; box.offsetHeight; box.style.animation='';
+    box.classList.remove('closed'); box.style.animation='none'; box.offsetHeight; box.style.animation='';
   }
   document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>openModel(+t.dataset.k));
 
   reset();
+  /* slides */
+  let cur=0; const N=5;
+  function go(i){
+    cur=Math.max(0,Math.min(N-1,i));
+    document.querySelectorAll('.slide').forEach(el=>el.classList.toggle('on',+el.dataset.i===cur));
+    document.querySelectorAll('.pstep').forEach(el=>{ const k=+el.dataset.i; el.classList.toggle('cur',k===cur); el.classList.toggle('done',k<cur); });
+    $('nav-back').disabled=cur===0;
+    $('nav-next').innerHTML=cur===N-1?'Start Lesson 1 &rarr;':'Continue &rarr;';
+    if(cur!==3) stop(); else render();
+    window.scrollTo({top:0});
+  }
+  $('nav-back').onclick=()=>go(cur-1);
+  $('nav-next').onclick=()=>{ if(cur===N-1) location.href='linear-regression.html'; else go(cur+1); };
+  document.querySelectorAll('.pstep').forEach(el=>el.onclick=()=>go(+el.dataset.i));
+  document.addEventListener('keydown',e=>{ if(e.target.closest&&e.target.closest('button')&&e.key!=='ArrowLeft'&&e.key!=='ArrowRight') return; if(e.key==='ArrowRight') go(cur+1); else if(e.key==='ArrowLeft') go(cur-1); });
+  go(0);
 
 })();
 </script>
