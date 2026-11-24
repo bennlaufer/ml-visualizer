@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML Visualizer</title>
+<meta name="description" content="Interactive, story-driven lessons that teach machine learning without heavy math.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fbf6ee; --card:#fff; --ink:#1e2433; --soft:#5b6476; --faint:#9aa3b2; --rule:#ebe4d8; --line:#4f46e5; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#fbf6ee; } }
+  :root[data-theme="dark"]{ --bg:#fbf6ee; }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Nunito',system-ui,sans-serif;}
+  .wrap{max-width:960px; margin:0 auto; padding:40px 16px 64px;}
+  .brand{display:flex; align-items:center; gap:12px;}
+  h1{font-family:'Fredoka',sans-serif; font-weight:600; font-size:30px; margin:0;}
+  .sub{color:var(--soft); font-weight:700; font-size:15px; margin:6px 0 0;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; margin-top:28px;}
+  .card{background:var(--card); border:1px solid var(--rule); border-radius:18px; padding:18px; text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:10px; transition:transform .15s, box-shadow .15s, border-color .15s;}
+  a.card:hover{transform:translateY(-2px); border-color:#c7c2ff; box-shadow:0 10px 24px -16px rgba(79,70,229,.6);}
+  .pic{border-radius:12px; background:linear-gradient(180deg,#eef2ff,#fff7ed); padding:10px 12px 4px;}
+  .pic svg{display:block; width:100%; height:auto;}
+  .num{font-size:12.5px; font-weight:800; color:#f97316; text-transform:uppercase; letter-spacing:.04em;}
+  h2{font-family:'Fredoka',sans-serif; font-weight:600; font-size:21px; margin:0;}
+  .desc{color:var(--soft); font-weight:700; font-size:14px; line-height:1.45; margin:0;}
+  .go{margin-top:auto; font-weight:800; font-size:14px; color:var(--line);}
+  .soon{border-style:dashed; justify-content:center; align-items:center; text-align:center; color:var(--faint); min-height:200px;}
+  .soon h2{color:var(--faint); font-size:18px;}
+  footer{margin-top:36px; color:var(--faint); font-weight:700; font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <svg width="40" height="40" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="10" fill="#4f46e5"/><path d="M7 25 L14 17 L19 21 L27 10" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="10" r="2.4" fill="#fff"/></svg>
+    <h1>ML Visualizer</h1>
+  </div>
+  <p class="sub">Machine learning, one story at a time. Interactive lessons, no heavy math.</p>
+
+  <div class="grid">
+    <a class="card" href="linear-regression.html">
+      <div class="pic">
+        <svg viewBox="0 0 300 150" role="img" aria-label="A line through house prices">
+          <line x1="20" y1="130" x2="290" y2="130" stroke="#e7dccb" stroke-width="2"/>
+          <line x1="20" y1="124" x2="285" y2="30" stroke="#4f46e5" stroke-width="4" stroke-linecap="round"/>
+          <g fill="#e11d48"><circle cx="55" cy="122" r="6"/><circle cx="105" cy="104" r="6"/><circle cx="160" cy="80" r="6"/><circle cx="210" cy="66" r="6"/><circle cx="262" cy="34" r="6"/></g>
+          <g transform="translate(120 18)"><polygon points="0,22 22,4 44,22" fill="#c4703c"/><rect x="6" y="22" width="32" height="24" fill="#f3c06b"/><rect x="18" y="32" width="8" height="14" fill="#7a4a2b"/></g>
+        </svg>
+      </div>
+      <div class="num">Lesson 1</div>
+      <h2>Linear regression: The Realtor Story</h2>
+      <p class="desc">Price houses by drawing a line, measure how wrong it is with the mean squared error, then fix it step by step with gradient descent.</p>
+      <div class="go">Start the lesson &rarr;</div>
+    </a>
+    <div class="card soon"><h2>More lessons coming</h2><p class="desc">Each lesson is a single page you can open anywhere.</p></div>
+  </div>
+
+  <footer>Made by Ben Laufer</footer>
+</div>
+</body>
+</html>
