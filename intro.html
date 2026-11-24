@@ -19,11 +19,17 @@
   html,body{margin:0; background:var(--bg); color:var(--ink); font-family:'Nunito',system-ui,sans-serif;}
   body{overflow-x:hidden; line-height:1.5;}
   h1,h2,h3,.disp{font-family:'Fredoka','Nunito',sans-serif; margin:0;}
-  .wrap{max-width:1040px; margin:0 auto; padding:28px 16px 72px;}
+  .wrap{max-width:1320px; margin:0 auto; padding:20px 24px 24px;}
   a{color:var(--line);}
-  .top{display:flex; align-items:center; justify-content:space-between; gap:12px;}
-  .back{font-weight:800; font-size:14px; text-decoration:none; color:var(--soft);} .back:hover{color:var(--line);}
-  .brand{display:flex; align-items:center; gap:10px; font-family:'Fredoka'; font-weight:600; font-size:17px;}
+  .hdr{display:flex; flex-direction:column; gap:12px;}
+  .hdr-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .hdr-l{display:flex; align-items:center; gap:12px; min-width:0;}
+  .hdr-r{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  .hdr-title{font-family:'Fredoka','Nunito',sans-serif; font-weight:600; font-size:22px; line-height:1.2;}
+  .hdr-sub{font-size:13px; font-weight:700; color:var(--soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .chip{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; padding:4px 10px; border-radius:99px; background:#f3efe7; color:var(--soft);}
+  .tabnum{font-variant-numeric:tabular-nums;}
+  .min-w-0{min-width:0;}
   .card-w{background:var(--card); border:1px solid var(--rule); border-radius:18px; box-shadow:0 1px 0 rgba(30,36,51,.04),0 6px 20px -12px rgba(30,36,51,.18);}
   #lead{font-family:'Fredoka'; font-weight:500; font-size:clamp(18px,2.6vw,23px); line-height:1.25; color:var(--ink);}
   #lead{margin:22px 0 0; max-width:none;}
@@ -35,7 +41,7 @@
   .slide.on{display:flex; flex-direction:column; justify-content:center; min-height:calc(100vh - 200px); animation:slidein .4s ease both;}
   @keyframes slidein{from{opacity:0; transform:translateX(24px)} to{opacity:1; transform:none}}
   .nav{position:sticky; bottom:0; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:14px; background:var(--bg); border-top:1px solid var(--rule); padding:12px 0 14px; margin-top:20px;}
-  .prog{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; min-width:0; margin-top:18px;}
+  .prog{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; min-width:0;}
   .pstep{display:flex; flex-direction:column; gap:5px; align-items:flex-start; background:none; border:0; padding:0; text-align:left; cursor:pointer; color:var(--faint); font-family:'Nunito'; font-size:12px; font-weight:700; min-width:0;}
   .pbar{height:6px; width:100%; border-radius:99px; background:#e7dfd1; overflow:hidden; display:block;}
   .pbar i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .4s;}
@@ -79,8 +85,8 @@
   #slide-5 .mpanel .mrow:nth-child(2){animation-delay:.12s;} #slide-5 .mpanel .mrow:nth-child(3){animation-delay:.24s;}
   #slide-5 .mpanel .flag{animation:rise .5s .4s both;}
   @keyframes rise{from{opacity:0; transform:translateY(22px) scale(.97)} to{opacity:1; transform:none}}
-  .mpanel .chip{animation:chipin .45s cubic-bezier(.3,1.5,.5,1) both;}
-  .mpanel .chip:nth-child(1){animation-delay:.3s;} .mpanel .chip:nth-child(2){animation-delay:.42s;} .mpanel .chip:nth-child(3){animation-delay:.54s;}
+  .mpanel .val{animation:chipin .45s cubic-bezier(.3,1.5,.5,1) both;}
+  .mpanel .val:nth-child(1){animation-delay:.3s;} .mpanel .val:nth-child(2){animation-delay:.42s;} .mpanel .val:nth-child(3){animation-delay:.54s;}
   @keyframes chipin{from{opacity:0; transform:scale(.4)} to{opacity:1; transform:none}}
   .mpanel .mpic{animation:picin .7s .35s cubic-bezier(.2,.8,.3,1) both; transform-origin:left bottom;}
   @keyframes picin{from{opacity:0; transform:scale(.8) translateY(10px)} to{opacity:1; transform:none}}
@@ -216,9 +222,9 @@
   .mpanel .mrow p{font-family:'Fredoka'; font-weight:500; font-size:19px; line-height:1.3;}
   .mpanel .mrow .mpic{margin-top:auto;}
   .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:auto;}
-  .chip{font-family:'Fredoka'; font-weight:600; font-size:20px; background:#f1efff; color:var(--c1); border-radius:12px; padding:8px 16px;}
-  .chip.yes{background:#dcfce7; color:#166534;} .chip.no{background:#ffe4e9; color:#9f1239;}
-  .chip.g1{background:#e0e7ff; color:#4338ca;} .chip.g2{background:#ffedd5; color:#c2410c;} .chip.g3{background:#ccfbf1; color:#0f766e;}
+  .val{font-family:'Fredoka'; font-weight:600; font-size:20px; background:#f1efff; color:var(--c1); border-radius:12px; padding:8px 16px;}
+  .val.yes{background:#dcfce7; color:#166534;} .val.no{background:#ffe4e9; color:#9f1239;}
+  .val.g1{background:#e0e7ff; color:#4338ca;} .val.g2{background:#ffedd5; color:#c2410c;} .val.g3{background:#ccfbf1; color:#0f766e;}
   .mpanel .formula{font-family:ui-monospace,Menlo,monospace; font-size:14.5px; font-weight:700; color:var(--c1);}
   .mpic{display:block; width:100%; max-width:200px; margin-top:10px;}
   .mpic.tree{max-width:260px;}
@@ -267,9 +273,9 @@
   .mpanel .mrow .mpic{max-width:none; width:100%; max-height:150px; margin-top:12px;}
   .mpanel .mrow .mpic.tree{max-width:none; max-height:160px;}
   .mpanel .chips{flex-direction:column; align-items:flex-start; justify-content:space-evenly; flex:1; gap:8px; margin-top:8px;}
-  .mpanel .chip{font-size:20px; padding:6px 16px;}
+  .mpanel .val{font-size:20px; padding:6px 16px;}
   #slide-4 #side-card{display:flex; flex-direction:column;}
-  #slide-4 .loop-svg{flex:1 1 auto; min-height:0; max-height:none; height:auto; margin:0 0 6px;}
+  #slide-4 .loop-svg{flex:1 1 0; height:0; min-height:180px; max-height:none; margin:0 0 6px;}
   #slide-1 .big-q{margin-bottom:40px;}
   #slide-1 .vs{margin-top:40px;}
 </style>
@@ -277,21 +283,25 @@
 <body>
 <div class="wrap">
 
-  <div class="top">
-    <div class="brand">
-      <svg width="30" height="30" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="10" fill="#4f46e5"/><path d="M7 25 L14 17 L19 21 L27 10" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="10" r="2.4" fill="#fff"/></svg>
-      ML Visualizer
+  <header class="hdr">
+    <div class="hdr-row">
+      <div class="hdr-l">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="10" fill="#4f46e5"/><path d="M7 25 L14 17 L19 21 L27 10" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="10" r="2.4" fill="#fff"/></svg>
+        <div class="min-w-0">
+          <div class="hdr-title">How Models Learn</div>
+          <div class="hdr-sub">The idea behind every model</div>
+        </div>
+      </div>
+      <div class="hdr-r"><a href="index.html" class="chip" style="text-decoration:none">&larr; All lessons</a><div class="chip tabnum" id="chapChip">Chapter 1 of 5</div></div>
     </div>
-    <a class="back" href="index.html">&larr; All lessons</a>
-  </div>
-
-      <div class="prog" id="prog">
-      <button class="pstep cur" data-i="0"><span class="pbar"><i></i></span><span class="plabel">What is ML</span></button>
-      <button class="pstep" data-i="1"><span class="pbar"><i></i></span><span class="plabel">You use it</span></button>
-      <button class="pstep" data-i="2"><span class="pbar"><i></i></span><span class="plabel">Three steps</span></button>
-      <button class="pstep" data-i="3"><span class="pbar"><i></i></span><span class="plabel">Try it</span></button>
-      <button class="pstep" data-i="4"><span class="pbar"><i></i></span><span class="plabel">Any model</span></button>
-    </div>
+    <nav class="prog" id="prog" aria-label="Chapters">
+      <button class="pstep cur" data-i="0"><span class="pbar"><i></i></span><span class="plabel">1. What is ML</span></button>
+      <button class="pstep" data-i="1"><span class="pbar"><i></i></span><span class="plabel">2. You use it</span></button>
+      <button class="pstep" data-i="2"><span class="pbar"><i></i></span><span class="plabel">3. Three steps</span></button>
+      <button class="pstep" data-i="3"><span class="pbar"><i></i></span><span class="plabel">4. Try it</span></button>
+      <button class="pstep" data-i="4"><span class="pbar"><i></i></span><span class="plabel">5. Any model</span></button>
+    </nav>
+  </header>
 
   <div class="stage" id="stage">
   <section class="slide on" id="slide-1" data-i="0">
@@ -550,10 +560,10 @@
   ];
   const R='#e11d48';
   const SOL=[
-    '<div class="chips"><span class="chip">$320k</span><span class="chip">$410k</span><span class="chip">$190k</span></div>',
-    '<div class="chips"><span class="chip yes">Yes</span><span class="chip no">No</span></div>',
-    '<div class="chips"><span class="chip">$320k</span><span class="chip yes">Yes</span><span class="chip no">No</span></div>',
-    '<div class="chips"><span class="chip g1">Group 1</span><span class="chip g2">Group 2</span><span class="chip g3">Group 3</span></div>'
+    '<div class="chips"><span class="val">$320k</span><span class="val">$410k</span><span class="val">$190k</span></div>',
+    '<div class="chips"><span class="val yes">Yes</span><span class="val no">No</span></div>',
+    '<div class="chips"><span class="val">$320k</span><span class="val yes">Yes</span><span class="val no">No</span></div>',
+    '<div class="chips"><span class="val g1">Group 1</span><span class="val g2">Group 2</span><span class="val g3">Group 3</span></div>'
   ];
   const ERR=[
     '<svg viewBox="0 0 160 70" class="mpic" role="img" aria-label="Misses between points and the line">'+AX+'<line x1="10" y1="54" x2="150" y2="12" stroke="#c7c2ff" stroke-width="3" stroke-linecap="round"/><g stroke="'+R+'" stroke-width="3.5" stroke-linecap="round"><line x1="30" y1="57" x2="30" y2="48"/><line x1="62" y1="28" x2="62" y2="38"/><line x1="92" y1="41" x2="92" y2="29"/><line x1="128" y1="8" x2="128" y2="19"/></g><g fill="#1e2433"><circle cx="30" cy="57" r="3.5"/><circle cx="62" cy="28" r="3.5"/><circle cx="92" cy="41" r="3.5"/><circle cx="128" cy="8" r="3.5"/></g></svg>',
@@ -586,7 +596,7 @@
     cur=Math.max(0,Math.min(N-1,i));
     document.querySelectorAll('.slide').forEach(el=>el.classList.toggle('on',+el.dataset.i===cur));
     document.querySelectorAll('.pstep').forEach(el=>{ const k=+el.dataset.i; el.classList.toggle('cur',k===cur); el.classList.toggle('done',k<cur); });
-    $('nav-back').disabled=cur===0;
+    $('nav-back').disabled=cur===0; $('chapChip').textContent='Chapter '+(cur+1)+' of '+N;
     $('nav-next').innerHTML=cur===N-1?'Start Lesson 1 &rarr;':'Continue &rarr;';
     if(cur!==3) stop(); else render();
     window.scrollTo({top:0});
