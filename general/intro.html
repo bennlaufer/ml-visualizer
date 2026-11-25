@@ -91,13 +91,15 @@
   .mpanel .mpic{animation:picin .7s .35s cubic-bezier(.2,.8,.3,1) both; transform-origin:left bottom;}
   @keyframes picin{from{opacity:0; transform:scale(.8) translateY(10px)} to{opacity:1; transform:none}}
   .mpanel .mrow:last-of-type .mpic{animation-delay:.5s;}
-  #slide-3 .moves{gap:20px;}
+  #slide-3 .moves{gap:20px; grid-template-columns:repeat(4,minmax(0,1fr));}
   #slide-3 .move{padding:26px 24px; gap:12px;}
   #slide-3 .move .n{width:38px; height:38px; font-size:18px;}
   #slide-3 .move h3{font-size:25px;}
   #slide-3 .move p{font-size:18px;}
-  #slide-3 .loopback{height:70px; margin-top:0;}
+  #slide-3 .loopback{height:70px; margin:14px 0 0 12.5%; width:calc(50% - 16px);}
   #slide-3 .loopback .lbl{font-size:18px;}
+  #slide-3 .loopback.exit{margin:-70px 0 0 calc(62.5% + 16px); width:calc(25% - 16px);}
+  #slide-3 .loopback.exit::before{left:auto; right:-9px;}
   #slide-5 .tab{font-size:16px; padding:10px 20px;}
   #slide-5 .pick{font-size:21px; padding:12px 20px;}
   /* fit the demo on one screen */
@@ -193,6 +195,9 @@
     .loopback{width:auto; height:auto; border:0; border-radius:14px; background:var(--line-soft); padding:10px 14px; text-align:center;}
     .loopback::before{display:none;}
     .loopback .lbl{position:static; transform:none; background:none; white-space:normal; padding:0;}
+    #slide-3 .moves{grid-template-columns:minmax(0,1fr);}
+    #slide-3 .loopback.exit::before{display:none;}
+    #slide-3 .loopback, #slide-3 .loopback.exit{width:auto; height:auto; margin:10px 0 0;}
   }
   .gpop{transform-box:fill-box; transform-origin:center; animation:gpop .4s cubic-bezier(.3,1.6,.5,1) both;}
   @keyframes gpop{from{transform:scale(0); opacity:0} to{transform:scale(1); opacity:1}}
@@ -340,8 +345,8 @@
     </div>
     <nav class="prog" id="prog" aria-label="Chapters">
       <button class="pstep cur" data-i="0"><span class="pbar"><i></i></span><span class="plabel">1. What is ML</span></button>
-      <button class="pstep" data-i="1"><span class="pbar"><i></i></span><span class="plabel">2. You use it</span></button>
-      <button class="pstep" data-i="2"><span class="pbar"><i></i></span><span class="plabel">3. Three steps</span></button>
+      <button class="pstep" data-i="1"><span class="pbar"><i></i></span><span class="plabel">2. It's everywhere</span></button>
+      <button class="pstep" data-i="2"><span class="pbar"><i></i></span><span class="plabel">3. How to build a model</span></button>
       <button class="pstep" data-i="3"><span class="pbar"><i></i></span><span class="plabel">4. Try it</span></button>
       <button class="pstep" data-i="4"><span class="pbar"><i></i></span><span class="plabel">5. Any model</span></button>
     </nav>
@@ -375,7 +380,7 @@
 
 
   <section class="slide" id="slide-2" data-i="1">
-    <h1 class="big-q" id="title2">You already use it</h1>
+    <h1 class="big-q" id="title2">Machine learning is everywhere!</h1>
     <div class="uses" id="uses">
       
       <div class="use-grid">
@@ -407,9 +412,17 @@
         <h3>Learn</h3>
         <p>Adjust the function so predictions are closer to actual values.</p>
       </div>
+      <div class="card-w move" id="move-4">
+        <div class="n" style="background:var(--c3)">4</div>
+        <h3>Use it</h3>
+        <p>Use your model to predict new answers.</p>
+      </div>
     </div>
     <div class="loopback" id="repeat-bar" aria-label="Arrow from step 3 back to step 1">
       <span class="lbl">&#8635; Repeat until you are happy with the assessment</span>
+    </div>
+    <div class="loopback exit" id="use-bar" aria-label="Arrow from step 3 to step 4">
+      <span class="lbl">Once you are happy</span>
     </div>
   </div></section>
 
