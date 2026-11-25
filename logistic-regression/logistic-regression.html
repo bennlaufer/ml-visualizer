@@ -21,7 +21,7 @@
   h1,h2,h3,.disp{font-family:'Fredoka','Nunito',sans-serif;}
   .card-w{background:var(--card); border:1px solid var(--rule); border-radius:18px; box-shadow:0 1px 0 rgba(30,36,51,.04),0 6px 20px -12px rgba(30,36,51,.18);}
   /* progress */
-  .prog{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px;}
+  .prog{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px;}
   .pstep{display:flex; flex-direction:column; gap:5px; align-items:flex-start; background:none; border:0; padding:0; text-align:left; cursor:pointer; color:var(--faint); font-size:12px; font-weight:700; min-width:0;}
   .pbar{height:6px; width:100%; border-radius:99px; background:#e7dfd1; overflow:hidden;}
   .pbar i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .4s;}
@@ -54,6 +54,7 @@
   .hcard.cur{border-color:var(--line); box-shadow:0 0 0 3px #e0e7ff;}
   .flyr{position:fixed; z-index:70; pointer-events:none; width:20px; height:20px; border-radius:50%; background:#fff; border:3.5px solid var(--yes); box-shadow:0 6px 10px rgba(30,36,51,.25);}
   /* panel */
+  .partbar{display:none;} body.wide .partbar{display:block; margin:2px 4px 8px;}
   .ptitle{font-family:'Fredoka'; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);}
   .phead{font-family:'Fredoka'; font-size:24px; font-weight:600; line-height:1.15;}
   .task{font-size:14.5px; color:var(--soft); font-weight:600;}
@@ -185,7 +186,7 @@
           <div class="text-[13px] font-bold text-[color:var(--soft)] truncate">How a machine learns to say yes or no</div>
         </div>
       </div>
-      <div class="flex items-center gap-2 shrink-0"><a href="../general/index.html" class="chip" style="text-decoration:none">&larr; <span class="hidden sm:inline">All lessons</span><span class="sm:hidden">Lessons</span></a><div class="chip tabnum" id="chapChip">Chapter 1 of 8</div></div>
+      <div class="flex items-center gap-2 shrink-0"><a href="../general/index.html" class="chip" style="text-decoration:none">&larr; <span class="hidden sm:inline">All lessons</span><span class="sm:hidden">Lessons</span></a><div class="chip tabnum" id="chapChip">Chapter 1 of 5</div></div>
     </div>
     <nav class="prog" id="prog" aria-label="Chapters"></nav>
   </header>
@@ -194,6 +195,7 @@
     <section class="flex flex-col gap-3 min-w-0">
       <div id="flashStage"></div>
       <div class="card-w p-3 lg:p-4" id="chartCard">
+        <div id="partBar" class="partbar ptitle"></div>
         <div id="eqBar"></div>
         <svg id="chart" role="img" aria-label="Chance of selling above asking against open house visitors"></svg>
         <div id="c1Bar" class="c1bar"></div>
@@ -275,6 +277,13 @@ const qRight=(q,C)=>{ const W=wayData(C); return q===0?(W.g0>0?'high':'low'):(W.
 const SMALL=.01;
 const f4=x=>{ const v=Math.round(x*10000)/10000; return (v<0?'−':'')+String(Math.abs(v)); };  // up to 4 decimals, for α × average
 const PN={m:'V1',b:'V2'};  // what the learner sees for the two parameters
+
+/* ---------- five chapters: the eight screens are grouped into predict, assess, learn, iterate, use ---------- */
+const CH5=[{t:'Predict',s:'Predict',steps:[0]},{t:'Assess predictions',s:'Assess',steps:[1,2]},{t:'Learn',s:'Learn',steps:[3,4]},{t:'Iterate',s:'Iterate',steps:[5,6]},{t:'Use the model',s:'Use',steps:[7]}];
+// screen (and its sub-part) -> [chapter, part, parts in chapter]; 0 parts means a one-part chapter
+const PARTS={'0':[1,0,0],'1':[2,1,3],'2.1':[2,2,3],'2.2':[2,3,3],'3.1':[3,1,3],'3.2':[3,2,3],'4':[3,3,3],'5':[4,1,2],'6':[4,2,2],'7':[5,0,0]};
+const chapOf=step=>CH5.findIndex(c=>c.steps.includes(step));
+function eyebrow(step,sub){ const [c,p,n]=PARTS[sub?`${step}.${sub}`:step]||PARTS[step]||PARTS[`${step}.1`]; return `Chapter ${c} &middot; ${CH5[c-1].t}${n?` &middot; Part ${p} of ${n}`:''}`; }
 
 /* ---------- state ---------- */
 const CH=[
@@ -480,7 +489,7 @@ function renderFlash(){
   const C=S.c1, k=C.i, hi=FLASH[k], h=HOUSES[hi];
   $('flashStage').innerHTML=`<div class="card-w p-4 lg:p-6 flex flex-col gap-4 fade-in max-w-[560px] mx-auto w-full">
     ${k===0?'<p class="text-[15px] font-bold">Five houses had an open house this weekend. Buyers want to know which ones will sell <b>above asking</b>. Start with two of them.</p>':''}
-    <div class="flex items-baseline justify-between gap-2"><div><div class="ptitle">Chapter 1 &middot; House ${k+1} of 2</div><div class="phead">${k===0?'The quietest house':'The busiest house'}</div></div>
+    <div class="flex items-baseline justify-between gap-2"><div><div class="ptitle">Chapter 1 &middot; Predict &middot; House ${k+1} of 2</div><div class="phead">${k===0?'The quietest house':'The busiest house'}</div></div>
       <div class="flex gap-1.5" aria-hidden="true">${FLASH.map((_,j)=>`<i style="width:9px;height:9px;border-radius:50%;display:inline-block;background:${j<=k?'var(--line)':'var(--rule)'}"></i>`).join('')}</div></div>
     <div class="flash popin">
       <div class="flash-house">${houseSVG(h)}</div>
@@ -573,7 +582,7 @@ async function revealResults(){
 function scMiss(i){ return Math.abs(missOf(S.first,i)); }
 function renderScore(){
   const T=S.sc, ms=HOUSES.map((h,i)=>scMiss(i)), allDone=T.done.every(v=>v), part=allDone?T.part:1, sum=r2(ms.reduce((a,b)=>a+b,0)), avg=r2(sum/N);
-  let h=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">Chapter 3 &middot; Part ${part} of 2</div><div class="phead">How wrong is my curve?</div></div>
+  let h=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">${eyebrow(2,part)}</div><div class="phead">How wrong is my curve?</div></div>
     ${part===1?`<div class="flex items-center gap-3"><span class="text-[13px] font-extrabold text-[color:var(--soft)]">${allDone?'All 5 houses':`House ${T.i+1} of 5`}</span><span class="hdots">${T.done.map((v,i)=>`<i class="${v?'on':!allDone&&i===T.i?'cur':''}"></i>`).join('')}</span></div>`:''}</div>
     <p class="task mt-2">${part===1?'Open up each house. How far was your curve&rsquo;s chance from what really happened? Write the chance as a decimal (33% is 0.33). What happened is <b>1</b> for sold above asking and <b>0</b> for not.'
       :'Now one number for the whole curve: the <b>average</b> of the five misses.'}</p>`;
@@ -642,7 +651,7 @@ function c4Answer(q,a){ const F=S.f, Wd=wayData(S.fix), g=q===0?Wd.g0:Wd.g1;
 function renderC4Bar(){
   const F=S.f, box=$('panel'), st=F.step, Wd=wayData(S.fix);
   const qOk=q=>F.q[q]&&!F.q[q].startsWith('wrong');
-  const head=`<div><div class="ptitle">Chapter 4 &middot; Part 1 of 2</div><div class="phead">Which way?</div>
+  const head=`<div><div class="ptitle">${eyebrow(3,1)}</div><div class="phead">Which way?</div>
     <div class="hdots mt-2">${[0,1,2].map(i=>`<i class="${i<st?'on':i===st?'cur':''}"></i>`).join('')}</div></div>`;
   let body='', canNext=false;
   if(st<=1){ const q=st, ok=qOk(q), wrong=F.q[q]?.startsWith('wrong')?F.q[q].slice(6):null;
@@ -669,7 +678,7 @@ function renderC4Bar(){
 function renderTable(){
   const F=S.f, D=gdData(S.first), on=F.tab;
   const cell=(id,txt,style='')=>`<span class="cell ${on?'on':''}" id="${id}" ${style}>${txt}</span>`;
-  $('scoreStage').innerHTML=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">Chapter 4 &middot; Part 2 of 2</div><div class="phead">How much to change?</div></div>
+  $('scoreStage').innerHTML=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">${eyebrow(3,2)}</div><div class="phead">How much to change?</div></div>
       <button class="btn btn-main" id="tbCalc" ${on||F.calcBusy?'disabled':''}>${F.calcBusy?'Calculating...':on?'Calculated':'Calculate'}</button></div>
     <p class="task mt-2" id="tbMsg">${F.doneMsg?'Done. The <b class="cb">average miss</b> and the <b class="cm">average of miss × X</b> tell us how far to move the curve.':'Two numbers from five houses tell us how far to move the curve: one for <b class="cb">V2</b> (how far it shifts) and one for <b class="cm">V1</b> (how steep it is).'}</p>
     <div class="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.8fr)] mt-3 items-start">
@@ -728,7 +737,7 @@ function renderPlug(){
       ${ok?'':`<div class="flex gap-2"><button class="btn btn-main btn-sm" id="pChk${k}" ${locked?'disabled':''}>Check</button><button class="btn btn-ghost btn-sm" id="pShw${k}" ${locked?'disabled':''}>Show me</button></div>`}
       <div class="text-[13px] font-bold min-h-[18px]" style="color:${ok?'#166534':'#9a3412'}">${P5.fb[k]}</div>`; };
   const both=P5.done.m&&P5.done.b, Wd=wayData(S.first);
-  box.innerHTML=`<div><div class="ptitle">Chapter 5</div><div class="phead">Fixing the curve</div></div>
+  box.innerHTML=`<div><div class="ptitle">${eyebrow(4)}</div><div class="phead">Fixing the curve</div></div>
     <p class="task">You know the direction (${Math.abs(Wd.g0)<SMALL?'no shift':Wd.g0>0?'shift down':'shift up'}, ${Math.abs(Wd.g1)<SMALL?'same steepness':Wd.g1>0?'flatter':'steeper'}). The update rule (gradient descent) works out <b>how far</b>, using the two averages from the table:</p>
     <div class="mathbox"><div class="slabel">The update rule</div>
       <div class="font-extrabold leading-[2] tabnum"><div><span class="cm">V1</span> &larr; V1 − ${STEP.m} × average(miss × X)</div><div><span class="cb">V2</span> &larr; V2 − ${STEP.b} × average(miss)</div></div>
@@ -946,7 +955,9 @@ const P={
       if(!I.simBusy&&!I.simDone){ I.simL={...S.first}; I.steps=0; I.trail=[]; I.hist=[avgMiss(S.first)]; } }, done:()=>S.it.simDone, hint:'Run a simulation'},
   7:{enter(){ if(S.n8===1) S.n8=0; }, done:()=>false, hint:''}
 };
-function renderProg(){ $('prog').innerHTML=CH.map((c,i)=>`<button class="pstep ${i<S.ch?'done':''} ${i===S.ch?'cur':''}" data-c="${i}" aria-label="Chapter ${i+1}: ${c.t}"><span class="pbar"><i></i></span><span class="plabel"><span class="lg:hidden">${i===S.ch?`${i+1}. ${c.s}`:i+1}</span><span class="hidden lg:inline">${i+1}. ${c.t}</span></span></button>`).join('');
+function renderProg(){ const cur=chapOf(S.ch);
+  $('prog').innerHTML=CH5.map((c,i)=>{
+    return `<button class="pstep ${i<cur?'done':''} ${i===cur?'cur':''}" data-c="${c.steps[0]}" aria-label="Chapter ${i+1}: ${c.t}"><span class="pbar"><i></i></span><span class="plabel"><span class="lg:hidden">${i===cur?`${i+1}. ${c.s}`:i+1}</span><span class="hidden lg:inline">${i+1}. ${c.t}</span></span></button>`; }).join('');
   $('prog').querySelectorAll('.pstep').forEach(b=>b.onclick=()=>{ go(+b.dataset.c); window.scrollTo({top:0,behavior:'smooth'}); }); }
 // skipping ahead: fill in earlier chapters with sensible answers so every chapter has what it needs
 function fillUpTo(c){
@@ -962,10 +973,10 @@ function fillUpTo(c){
 function go(c){ fillUpTo(c); stopPlay(); S.ch=c; S.maxCh=Math.max(S.maxCh,c); P[c].enter(); $('panel').innerHTML=''; update(); renderProg();
   const titles=['The open houses','The results','','Your misses','','Running every step again','Your curve as it learns','The new listing'];
   const hints=['Guess two, and your curve gives the rest a chance','Each result lands at 100% or 0%','','Each miss: chance minus result','','The cards fill in as each step runs','Updates on every step','Set its visitors'];
-  $('cardsTitle').textContent=titles[c]; $('cardsHint').textContent=hints[c]; $('chapChip').textContent=`Chapter ${c+1} of 8`; }
+  $('cardsTitle').textContent=titles[c]; $('cardsHint').textContent=hints[c]; $('chapChip').textContent=`Chapter ${chapOf(c)+1} of 5`; }
 $('backBtn').onclick=()=>{ if(S.ch>0) go(S.ch-1); };
 $('nextBtn').onclick=()=>{ if(S.ch<7&&P[S.ch].done()){ go(S.ch+1); window.scrollTo({top:0,behavior:'smooth'}); } };
-function update(){
+function update(){ if($('partBar')) $('partBar').innerHTML=`${eyebrow(S.ch)} &middot; <span style="color:var(--soft)">${CH[S.ch].t}</span>`;
   const c=S.ch, fm=c===0&&S.c1.i<2, B=document.body.classList;
   B.toggle('wide',(c===0&&!fm)||c===1||c>=5); B.toggle('showeq',(c===0&&!fm)||c>=4); B.toggle('replay',c===5);
   B.toggle('nocalc',c===7&&S.n8>=2); B.toggle('c5',c===3&&S.f.part===1); B.toggle('c6',c===4);

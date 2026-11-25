@@ -22,7 +22,7 @@
   h1,h2,h3,.disp{font-family:'Fredoka','Nunito',sans-serif;}
   .card-w{background:var(--card); border:1px solid var(--rule); border-radius:18px; box-shadow:0 1px 0 rgba(30,36,51,.04),0 6px 20px -12px rgba(30,36,51,.18);}
   /* progress */
-  .prog{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px;}
+  .prog{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px;}
   .pstep{display:flex; flex-direction:column; gap:5px; align-items:flex-start; background:none; border:0; padding:0; text-align:left; cursor:pointer; color:var(--faint); font-size:12px; font-weight:700; min-width:0;}
   .pstep:disabled{cursor:not-allowed;}
   .pbar{height:6px; width:100%; border-radius:99px; background:#e7dfd1; overflow:hidden;}
@@ -70,6 +70,7 @@
   .sold.drop{animation:drop .7s cubic-bezier(.3,1.6,.5,1);}
   @keyframes drop{0%{transform:translateY(-30px) rotate(-12deg); opacity:0} 60%{opacity:1} 100%{transform:none}}
   /* panel */
+  .partbar{display:none;} body.wide .partbar{display:block; margin:2px 4px 8px;}
   .ptitle{font-family:'Fredoka'; font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);}
   .phead{font-family:'Fredoka'; font-size:24px; font-weight:600; line-height:1.15;}
   .task{font-size:14.5px; color:var(--soft); font-weight:600;}
@@ -138,6 +139,10 @@
   .recapgrid div{display:flex; gap:8px; align-items:flex-start;} .recapgrid .n{flex:none; width:20px; height:20px; border-radius:50%; background:#eef2ff; color:var(--line); font-size:11.5px; font-weight:800; display:grid; place-items:center;}
   @media (max-width:640px){ #c1Bar>*{flex-basis:100%;} }
   .eqstrip{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 16px; padding:2px 4px 10px; margin-bottom:4px; border-bottom:1px dashed var(--rule);}
+  .eqbox{border:1.5px solid #e0e7ff; background:#f8f7ff; border-radius:14px; padding:8px 14px 10px; min-width:230px;}
+  .eqbox-h{font-family:'Fredoka'; font-size:12.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--line); margin-bottom:2px;}
+  .eqbox-row{display:flex; justify-content:space-between; align-items:baseline; gap:18px; font-weight:800; font-size:14.5px;}
+  .eqbox-row b{font-family:'Fredoka'; font-size:22px; font-weight:600; line-height:1.25;}
   .eqright{display:flex; flex-direction:column; align-items:flex-end; gap:2px;}
   .eqline{font-size:24px; font-weight:600; line-height:1.15; white-space:nowrap; word-spacing:2px;}
   .eqcap{font-size:11px; font-weight:800; color:var(--soft);}
@@ -215,7 +220,7 @@
           <div class="text-[13px] font-bold text-[color:var(--soft)] truncate">How a machine learns the best price line</div>
         </div>
       </div>
-      <div class="flex items-center gap-2 shrink-0"><a href="../general/index.html" class="chip" style="text-decoration:none">&larr; All lessons</a><div class="chip tabnum" id="chapChip">Chapter 1 of 8</div></div>
+      <div class="flex items-center gap-2 shrink-0"><a href="../general/index.html" class="chip" style="text-decoration:none">&larr; All lessons</a><div class="chip tabnum" id="chapChip">Chapter 1 of 5</div></div>
     </div>
     <nav class="prog" id="prog" aria-label="Chapters"></nav>
   </header>
@@ -232,6 +237,7 @@
         <div class="flex items-center justify-between gap-2 mb-1 flex-wrap">
           <div class="chip" id="chartChip" style="display:none"></div>
         </div>
+        <div id="partBar" class="partbar ptitle"></div>
         <div id="eqBar"></div>
         <svg id="chart" role="img" aria-label="Chart of house size versus price"></svg>
         <div id="c1Bar" class="c1bar"></div>
@@ -286,9 +292,17 @@ const BEST=(()=>{const xs=HOUSES.map(h=>u(h.s)), ys=HOUSES.map(h=>h.p); const my
 const BESTBAD=badness(BEST);
 const typical=L=>Math.sqrt(badness(L));
 const fmtK=v=>{const r=Math.round(v); return (r<0?'-$':'$')+Math.abs(r).toLocaleString('en-US')+'k';};
+const sz=v=>`${(v/1000).toFixed(2)}k sq ft`;  // house sizes are shown in thousands of sq ft, the same units as X
 const fmtN=v=>Math.round(v).toLocaleString('en-US');
-const ruleText=L=>{const a=guess(L,850), per=L.tl; return `${fmtK(a)} for the 850 sq ft house, ${per>=0?'plus':'minus'} ${fmtK(Math.abs(per))} for every extra 1,000 sq ft`;};
+const ruleText=L=>{const a=guess(L,850), per=L.tl; return `${fmtK(a)} for the ${sz(850)} house, ${per>=0?'plus':'minus'} ${fmtK(Math.abs(per))} for every extra 1k sq ft`;};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ---------- five chapters: the eight screens are grouped into predict, assess, learn, iterate, use ---------- */
+const CH5=[{t:'Predict',s:'Predict',steps:[0]},{t:'Assess predictions',s:'Assess',steps:[1,2]},{t:'Learn',s:'Learn',steps:[3,4]},{t:'Iterate',s:'Iterate',steps:[5,6]},{t:'Use the model',s:'Use',steps:[7]}];
+// screen (and its sub-part) -> [chapter, part, parts in chapter]; 0 parts means a one-part chapter
+const PARTS={'0':[1,0,0],'1':[2,1,3],'2.1':[2,2,3],'2.2':[2,3,3],'3.1':[3,1,3],'3.2':[3,2,3],'4':[3,3,3],'5':[4,1,2],'6':[4,2,2],'7':[5,0,0]};
+const chapOf=step=>CH5.findIndex(c=>c.steps.includes(step));
+function eyebrow(step,sub){ const [c,p,n]=PARTS[sub?`${step}.${sub}`:step]||PARTS[step]||PARTS[`${step}.1`]; return `Chapter ${c} &middot; ${CH5[c-1].t}${n?` &middot; Part ${p} of ${n}`:''}`; }
 
 /* ---------- state ---------- */
 const CH=[
@@ -359,8 +373,8 @@ function renderChart(){
   const o=chartOpts(); let s='';
   s+=`<defs><clipPath id="plot"><rect x="${M.l}" y="${M.t}" width="${W-M.l-M.r}" height="${H-M.t-M.b}"/></clipPath></defs>`;
   for(let p=0;p<=700;p+=100){ if(narrow&&p%200) continue; s+=`<line x1="${M.l}" x2="${W-M.r}" y1="${Y(p)}" y2="${Y(p)}" stroke="#efe9df"/><text x="${M.l-8}" y="${Y(p)+4}" font-size="11.5" text-anchor="end" fill="#9aa3b2" font-weight="700">$${p}k</text>`; }
-  for(let x=1000;x<=3500;x+=500){ if(narrow&&x%1000) continue; s+=`<line x1="${X(x)}" x2="${X(x)}" y1="${M.t}" y2="${H-M.b}" stroke="#f4efe6"/><text x="${X(x)}" y="${H-M.b+17}" font-size="11.5" text-anchor="middle" fill="#9aa3b2" font-weight="700">${x.toLocaleString('en-US')}</text>`; }
-  s+=`<text x="${(M.l+W-M.r)/2}" y="${H-6}" font-size="12" text-anchor="middle" fill="#5b6476" font-weight="800">House size (sq ft)</text>`;
+  for(let x=1000;x<=3500;x+=500){ if(narrow&&x%1000) continue; s+=`<line x1="${X(x)}" x2="${X(x)}" y1="${M.t}" y2="${H-M.b}" stroke="#f4efe6"/><text x="${X(x)}" y="${H-M.b+17}" font-size="11.5" text-anchor="middle" fill="#9aa3b2" font-weight="700">${(x/1000).toFixed(1)}</text>`; }
+  s+=`<text x="${(M.l+W-M.r)/2}" y="${H-6}" font-size="12" text-anchor="middle" fill="#5b6476" font-weight="800">House size (1,000 sq ft)</text>`;
   s+=`<g clip-path="url(#plot)">`;
   // squares
   if(o.sq) HOUSES.forEach((h,i)=>{ if(!o.sq[i]) return; const g=guess(o.main,h.s), x=X(h.s), y1=Y(h.p), y2=Y(g); const side=Math.abs(y2-y1); if(side<1||(S.ch===5&&side>150)) return;
@@ -454,14 +468,14 @@ function cardsFor(){
   const c=S.ch;
   if(c===7){ const P8=n8Prices();
     return `<div class="hcard n8card"><div id="n8Pic">${houseSVG(-1,S.newSize,'sale')}</div>
-      <div class="hsize" id="n8Size">${S.newSize.toLocaleString('en-US')} sq ft</div>
+      <div class="hsize" id="n8Size">${n8SizeTxt()}</div>
       <input type="range" min="700" max="3500" step="50" value="${S.newSize}" id="n8SizeR" aria-label="New house size" class="w-full" ${S.n8===1?'disabled':''}>
       <div class="hrow"><span>The line says</span><b class="g tabnum" id="n8Best">${S.n8>=2?fmtK(P8.ans):'?'}</b></div></div>`; }
   if(c===5){ const I=S.it, V=I.vis, L=I.cardL||I.L||S.first, q='<span style="color:var(--faint)">?</span>';
     return HOUSES.map((h,i)=>{ const g=Math.round(guess(L,h.s)), e=g-h.p, ae=Math.abs(e), cls=ae<3?'ok':e>0?'hi':'lo';
       const body=`<div class="hrow"><span>Line</span><b class="g tabnum" id="rLine${i}">${V.cPred[i]?fmtK(g):q}</b></div><div class="hrow"><span>Sold</span><b class="r tabnum" id="rSold${i}">${V.cSold[i]?fmtK(h.p):q}</b></div>`;
       const foot=V.cMiss[i]?`<div class="miss ${cls}" id="rMiss${i}">${ae<3?'Spot on':`${fmtK(ae)} ${e>0?'too high':'too low'}`}</div>`:`<div class="miss" id="rMiss${i}" style="background:#f4efe6;color:var(--faint)">miss: ?</div>`;
-      return `<div class="hcard" data-i="${i}">${houseSVG(i,h.s,V.cSold[i]?'sold':'sale')}<div class="hsize">${h.s.toLocaleString('en-US')} sq ft</div>${body}${foot}</div>`; }).join(''); }
+      return `<div class="hcard" data-i="${i}">${houseSVG(i,h.s,V.cSold[i]?'sold':'sale')}<div class="hsize">${sz(h.s)}</div>${body}${foot}</div>`; }).join(''); }
   const L=c<=3?S.first:c===4?S.fix:c===6?simL():BEST;
   return HOUSES.map((h,i)=>{
     const g=guess(L,h.s), e=g-h.p, hi=e>0, ae=Math.abs(e), cls=ae<3?'ok':hi?'hi':'lo';
@@ -477,7 +491,7 @@ function cardsFor(){
     else if(c===3){ foot=`<div class="miss ${cls}">${fmtK(ae)} ${word}</div>`+(S.squared[i]?`<div class="miss sq tabnum">${Math.round(ae)} × ${Math.round(ae)} = ${fmtN(Math.round(ae)*Math.round(ae))}</div>`:''); }
     else if(c>=4){ foot=`<div class="miss ${cls}">${ae<3?'Spot on':`${fmtK(ae)} ${word}`}</div>`; }
     const tap=false, cur=(c===2&&!S.c3.meas[i]&&i===S.c3.i)||(c===3&&!S.squared[i]&&i===S.sc.i);
-    return `<div class="hcard ${tap?'tap':''} ${cur?'cur':''}" data-i="${i}">${houseSVG(i,h.s,sign)}<div class="hsize">${h.s.toLocaleString('en-US')} sq ft</div>${body}${foot}</div>`;
+    return `<div class="hcard ${tap?'tap':''} ${cur?'cur':''}" data-i="${i}">${houseSVG(i,h.s,sign)}<div class="hsize">${sz(h.s)}</div>${body}${foot}</div>`;
   }).join('');
 }
 $('cards').addEventListener('click',e=>{ const card=e.target.closest('.hcard'); if(!card) return; const i=+card.dataset.i;
@@ -486,7 +500,7 @@ $('cards').addEventListener('click',e=>{ const card=e.target.closest('.hcard'); 
 /* ---------- chapter actions ---------- */
 function reveal(i){ if(S.revealed[i]) return; S.revealed[i]=1; S.justRev=i; const h=HOUSES[i], g=guess(S.first,h.s), e=g-h.p;
   const n=S.revealed.reduce((a,b)=>a+b,0);
-  if(n<5) say(`The ${h.s.toLocaleString('en-US')} sq ft house sold for ${fmtK(h.p)}. You guessed ${fmtK(g)}: ${Math.abs(e)<3?'nearly spot on!':`${fmtK(Math.abs(e))} too ${e>0?'high':'low'}.`} ${n===1?'The red or orange bar is your miss.':''}`);
+  if(n<5) say(`The ${sz(h.s)} house sold for ${fmtK(h.p)}. You guessed ${fmtK(g)}: ${Math.abs(e)<3?'nearly spot on!':`${fmtK(Math.abs(e))} too ${e>0?'high':'low'}.`} ${n===1?'The red or orange bar is your miss.':''}`);
   else { const ms=misses(S.first); const hiN=ms.filter(v=>v>0).length; say(`All 5 sold! You were too high on ${hiN} and too low on ${5-hiN}. So how bad is your line, in one number?`); }
   update(); S.justRev=-1; }
 function square(i){ if(S.squared[i]) return; S.squared[i]=1; S.justSq=i; const e=Math.abs(Math.round(misses(S.first)[i])); const n=S.squared.reduce((a,b)=>a+b,0);
@@ -505,14 +519,14 @@ P[0]={enter(){ const C=S.c1;
     else say("Hey, welcome to the neighborhood! Buyers want to know what two of these houses are worth. Let's start with the smallest one. <b>What do you think it sold for?</b>"); },
   html:()=>{ const C=S.c1;
     if(C.i<2) return ''; // the two flashcards live in the full-width flash stage
-    const guesses=`<div class="flex gap-2">${FLASH.map((hi,k)=>`<div class="tag flex-1 text-center"><div class="text-[12.5px] font-extrabold text-[color:var(--soft)]">${HOUSES[hi].s.toLocaleString('en-US')} sq ft</div><div class="text-[19px] font-extrabold" style="color:var(--line)">${fmtK(C.g[k])}</div></div>`).join('')}</div>`;
-    if(!C.line) return `<div><div class="ptitle">Chapter 1</div><div class="phead">Two points make a line</div></div>${guesses}
+    const guesses=`<div class="flex gap-2">${FLASH.map((hi,k)=>`<div class="tag flex-1 text-center"><div class="text-[12.5px] font-extrabold text-[color:var(--soft)]">${sz(HOUSES[hi].s)}</div><div class="text-[19px] font-extrabold" style="color:var(--line)">${fmtK(C.g[k])}</div></div>`).join('')}</div>`;
+    if(!C.line) return `<div><div class="ptitle">${eyebrow(0)}</div><div class="phead">Two points make a line</div></div>${guesses}
       <p class="task">Plotting your two guesses and drawing a straight line through them...</p>`;
-    if(C.placed<3) return `<div><div class="ptitle">Chapter 1</div><div class="phead">Two points make a line</div></div>${guesses}
+    if(C.placed<3) return `<div><div class="ptitle">${eyebrow(0)}</div><div class="phead">Two points make a line</div></div>${guesses}
       <p class="task">That's your <b>pricing line</b>. For any house: find its size along the bottom, go up to the line, and read off the price.</p>
       <button class="btn btn-main w-full" id="predictNext" ${C.flying?'disabled':''}>${C.flying?'Predicting...':'Now predict the next houses'}</button>
       ${C.flying?'':'<button class="btn btn-ghost btn-sm" id="redoGuess">Change my guesses</button>'}`;
-    return `<div><div class="ptitle">Chapter 1</div><div class="phead">Your first pricing line</div></div>
+    return `<div><div class="ptitle">${eyebrow(0)}</div><div class="phead">Your first pricing line</div></div>
       <p class="task">For any house: find its size along the bottom, go up to your line, read its price.</p>
       <div class="tag" style="background:#f6f5ff;border-color:#e0e7ff"><div class="text-[12.5px] font-extrabold text-[color:var(--soft)] mb-1">YOUR RULE IN WORDS</div><div class="text-[15.5px] font-bold leading-snug" id="ruleWords"></div></div>
       <button class="btn btn-ghost btn-sm" id="redoGuess">Change my guesses</button>`; },
@@ -523,14 +537,14 @@ P[0]={enter(){ const C=S.c1;
   done:()=>S.c1.line&&S.c1.placed>=3, hint:'Predict the other houses first'};
 
 P[1]={enter(){ if(S.revealed.every(v=>v)) say("All 5 sales are in. Each colored bar is how far off you were."); else say("The sales are coming in! <b>Tap a house</b> (or Next sale) to see what it really sold for."); },
-  html:()=>`<div><div class="ptitle">Chapter 2</div><div class="phead">The sales come in</div></div>
+  html:()=>`<div><div class="ptitle">${eyebrow(1)}</div><div class="phead">The sales come in</div></div>
   <p class="task">Your miss is how far off your guess was: your guess minus the real price.</p>
   <button class="btn btn-main" id="nextSale">Next sale</button>
   <div class="flex flex-col gap-1.5" id="saleLog"></div>`,
   wire(){ if($('nextSale')) $('nextSale').onclick=()=>{const i=S.revealed.indexOf(0); if(i>=0) reveal(i);}; },
   upd(){ const n=S.revealed.reduce((a,b)=>a+b,0); const b=$('nextSale'); if(!b||!$('saleLog')) return; b.disabled=n===5; b.textContent=n===5?'All 5 sold':`Next sale (${5-n} left)`;
     $('saleLog').innerHTML=HOUSES.map((h,i)=>{ if(!S.revealed[i]) return ''; const g=guess(S.first,h.s), e=g-h.p; const cls=Math.abs(e)<3?'ok':e>0?'hi':'lo';
-      return `<div class="miss ${cls} tabnum" style="font-size:13.5px">${h.s.toLocaleString('en-US')} sq ft: ${fmtK(g)} − ${fmtK(h.p)} = ${fmtK(Math.abs(e))} ${Math.abs(e)<3?'spot on':e>0?'too high':'too low'}</div>`; }).join(''); },
+      return `<div class="miss ${cls} tabnum" style="font-size:13.5px">${sz(h.s)}: ${fmtK(g)} − ${fmtK(h.p)} = ${fmtK(Math.abs(e))} ${Math.abs(e)<3?'spot on':e>0?'too high':'too low'}</div>`; }).join(''); },
   done:()=>S.revealed.every(v=>v), hint:'Reveal all 5 sales'};
 
 P[2]={enter(){}, html:()=>'', wire(){}, upd(){}, done:()=>S.sc.stage>=3, hint:'Work out your score'};
@@ -538,7 +552,7 @@ P[2]={enter(){}, html:()=>'', wire(){}, upd(){}, done:()=>S.sc.stage>=3, hint:'W
 function renderScore(){
   const T=S.sc, raw=misses(S.first), ms=raw.map(e=>Math.round(Math.abs(e))), sq=ms.map(m=>m*m), mse=sq.reduce((a,b)=>a+b,0)/5;
   const allSq=S.squared.every(v=>v), done=S.squared.reduce((a,b)=>a+b,0), part=allSq?T.part:1;
-  const head=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">Chapter 3 · Part ${part} of 2</div><div class="phead">How bad is my line?</div></div>
+  const head=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">${eyebrow(2,part)}</div><div class="phead">How bad is my line?</div></div>
     ${part===1?`<div class="flex items-center gap-3"><span class="text-[13px] font-extrabold text-[color:var(--soft)]">${allSq?'All 5 houses':`House ${done+1} of 5`}</span><span class="hdots">${S.squared.map((v,i)=>`<i class="${v?'on':!allSq&&i===T.i?'cur':''}"></i>`).join('')}</span></div>`:''}</div>
     <p class="task mt-2">${part===1?'Open up each house. Work out how far off your line is, then <b>square</b> it (multiply it by itself). Squaring makes too high and too low count the same, and makes big misses count extra.'
       :'Now one number for the whole line: the <b>average</b> of the five squares.'}</p>`;
@@ -547,7 +561,7 @@ function renderScore(){
     h+=`<div class="ohouse mt-4">
       <div class="ohouse-pic">${houseSVG(i,H.s,'sold')}</div>
       <div>
-        <div class="disp text-[28px] font-semibold mb-1">${H.s.toLocaleString('en-US')} sq ft</div>
+        <div class="disp text-[28px] font-semibold mb-1">${sz(H.s)}</div>
         <div class="stat"><span>Your line said</span><b style="color:var(--line)">${fmtK(g)}</b></div>
         <div class="stat"><span>It sold for</span><b style="color:var(--real)">${fmtK(H.p)}</b></div>
         <div class="stat"><span>Off by</span>${diff?'<b style="color:var(--faint)">?</b>':`<b style="color:${hi?'var(--hi)':'var(--lo)'}">${fmtK(m)} <span class="text-[14px]">${hi?'too high':'too low'}</span></b>`}</div>
@@ -560,7 +574,7 @@ function renderScore(){
         </div>
       </div></div>`;
   } else {
-    h+=`<div class="mt-4">${HOUSES.map((H,i)=>`<div class="sqrow">${houseSVG(i,H.s,'sold')}<span>${H.s.toLocaleString('en-US')} sq ft</span><span class="text-[color:var(--soft)]">off by ${fmtK(ms[i])}</span><span class="tabnum">${ms[i]} × ${ms[i]} = <b>${fmtN(sq[i])}</b></span></div>`).join('')}</div>`;
+    h+=`<div class="mt-4">${HOUSES.map((H,i)=>`<div class="sqrow">${houseSVG(i,H.s,'sold')}<span>${sz(H.s)}</span><span class="text-[color:var(--soft)]">off by ${fmtK(ms[i])}</span><span class="tabnum">${ms[i]} × ${ms[i]} = <b>${fmtN(sq[i])}</b></span></div>`).join('')}</div>`;
     if(part===1) h+=`<div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-[color:var(--rule)]">
         <span class="text-[15px] font-bold">${T.msg?`<span style="color:#166534">${T.msg}</span> `:''}All 5 misses squared.</span>
         <button class="btn btn-main" id="scPart2">Next: one number for the whole line &rarr;</button></div>`;
@@ -642,6 +656,7 @@ const r2=x=>{ const v=Math.round(x*100)/100; return v===0?0:v; }, n2=x=>{ const 
 function c5Data(L){ const e=HOUSES.map(h=>Math.round(guess(L,h.s))-h.p); return {e, g0:mean(e), g1:mean(e.map((v,i)=>v*u(HOUSES[i].s)))}; }
 function c5Target(L){ const D=c5Data(L); return {lv:L.lv-D.g0, tl:L.tl-D.g1}; }   // rough preview of where the line is headed
 const ALPHA=0.2, xk=s=>s/1000;
+const PN={m:'V1',b:'V2'};  // what the learner sees for the two variables
 const tbFrom=L=>({m:L.tl, b:L.lv-L.tl*MID/1000}), tbTo=T=>({lv:T.b+T.m*MID/1000, tl:T.m});
 function gdData(L){ const T=tbFrom(L), e=HOUSES.map(h=>Math.round(guess(L,h.s))-h.p), x=HOUSES.map(h=>xk(h.s)), ex=e.map((v,i)=>r2(v*x[i]));
   const ae=r2(mean(e)), aex=r2(mean(ex)); return {T, e, x, ex, ae, aex, nm:r1(T.m-ALPHA*aex), nb:r1(T.b-ALPHA*ae)}; }
@@ -655,7 +670,7 @@ function c5Answer(q,a){ const F=S.f, D=c5Data(S.fix), g=q===0?D.g0:D.g1;
 function renderC5Bar(){
   const F=S.f, box=$('panel'), L=S.fix, st=F.step, D=c5Data(L);
   const qOk=q=>F.q[q]&&!F.q[q].startsWith('wrong');
-  const head=`<div><div class="ptitle">Chapter 4 · Part 1 of 2</div><div class="phead">Which way?</div>
+  const head=`<div><div class="ptitle">${eyebrow(3,1)}</div><div class="phead">Which way?</div>
     <div class="hdots mt-2">${[0,1,2].map(i=>`<i class="${i<st?'on':i===st?'cur':''}"></i>`).join('')}</div></div>`;
   let body='', canNext=false;
   if(st<=1){ const q=st, ok=qOk(q), wrong=F.q[q]?.startsWith('wrong')?F.q[q].slice(6):null;
@@ -683,20 +698,20 @@ function renderC5Bar(){
 function renderTable(){
   const F=S.f, D=gdData(S.first), on=F.tab;
   const cell=(id,txt,style='')=>`<span class="cell ${on?'on':''}" id="${id}" ${style}>${txt}</span>`;
-  $('scoreStage').innerHTML=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">Chapter 4 · Part 2 of 2</div><div class="phead">How much to change?</div></div>
+  $('scoreStage').innerHTML=`<div class="flex flex-wrap items-end justify-between gap-3"><div><div class="ptitle">${eyebrow(3,2)}</div><div class="phead">How much to change?</div></div>
       <button class="btn btn-main" id="tbCalc" ${on||F.calcBusy?'disabled':''}>${F.calcBusy?'Calculating...':on?'Calculated':'Calculate'}</button></div>
-    <p class="task mt-2">Two numbers from five houses tell us how far to move the line: one for <b class="cb">b</b> (where the line starts) and one for <b class="cm">m</b> (its slope).</p>
+    <p class="task mt-2">Two numbers from five houses tell us how far to move the line: one for <b class="cb">Variable 2</b> (where the line starts) and one for <b class="cm">Variable 1</b> (its slope).</p>
     <div class="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.8fr)] mt-3 items-start">
-      <div class="overflow-x-auto"><table class="w-full text-[15px] font-bold tabnum dtab"><colgroup><col style="width:19%"><col style="width:15%"><col style="width:13%"><col style="width:16%"><col style="width:15%"><col style="width:22%"></colgroup>
-        <thead><tr class="text-[12.5px] text-[color:var(--soft)] uppercase tracking-wide"><th class="tl">House</th><th>Your line</th><th>Sold</th><th class="hl">miss</th><th>X</th><th class="hl">miss × X</th></tr></thead>
-        <tbody>${HOUSES.map((h,i)=>`<tr id="tr${i}"><td class="tl" id="tH${i}">${h.s.toLocaleString('en-US')} sq ft</td><td style="color:var(--line)" id="tL${i}">${fmtK(Math.round(guess(S.first,h.s)))}</td><td id="tS${i}">${fmtK(h.p)}</td>
-          <td class="hl">${cell('cm'+i,sgn(D.e[i]),`style="color:${D.e[i]>0?'#be123c':'#b45309'}"`)}</td><td>${cell('cx'+i,n2(D.x[i]))}</td><td class="hl">${cell('cp'+i,n2(D.ex[i]))}</td></tr>`).join('')}</tbody>
-        <tfoot><tr class="avg"><td class="tl">Average</td><td></td><td></td><td class="hl" id="tdAvM"><span class="avgv cb ${on?'on':''}" id="avM">${n2(D.ae)}</span></td><td></td><td class="hl" id="tdAvX"><span class="avgv cm ${on?'on':''}" id="avX">${n2(D.aex)}</span></td></tr></tfoot>
+      <div class="overflow-x-auto"><table class="w-full text-[15px] font-bold tabnum dtab"><colgroup><col style="width:26%"><col style="width:17%"><col style="width:15%"><col style="width:19%"><col style="width:23%"></colgroup>
+        <thead><tr class="text-[12.5px] text-[color:var(--soft)] uppercase tracking-wide"><th class="tl">Size X <span style="text-transform:none">(1,000 sq ft)</span></th><th>Your line</th><th>Sold</th><th class="hl">miss</th><th class="hl">miss × X</th></tr></thead>
+        <tbody>${HOUSES.map((h,i)=>`<tr id="tr${i}"><td class="tl" id="tH${i}">${n2(D.x[i])}</td><td style="color:var(--line)" id="tL${i}">${fmtK(Math.round(guess(S.first,h.s)))}</td><td id="tS${i}">${fmtK(h.p)}</td>
+          <td class="hl">${cell('cm'+i,sgn(D.e[i]),`style="color:${D.e[i]>0?'#be123c':'#b45309'}"`)}</td><td class="hl">${cell('cp'+i,n2(D.ex[i]))}</td></tr>`).join('')}</tbody>
+        <tfoot><tr class="avg"><td class="tl">Average</td><td></td><td></td><td class="hl" id="tdAvM"><span class="avgv cb ${on?'on':''}" id="avM">${n2(D.ae)}</span></td><td class="hl" id="tdAvX"><span class="avgv cm ${on?'on':''}" id="avX">${n2(D.aex)}</span></td></tr></tfoot>
       </table></div>
       <div class="flex flex-col gap-3 text-[14px] font-bold text-[color:var(--soft)]">
         <div class="slabel">What each column means</div>
         <div><b class="text-[color:var(--ink)]">miss</b> = your line − sold price. Plus means your line was too high, minus too low.</div>
-        <div><b class="text-[color:var(--ink)]">X</b> = the house size, in 1,000s of sq ft. So the 850 sq ft house has X = 0.85.</div>
+        <div><b class="text-[color:var(--ink)]">X</b> = the house size in thousands of sq ft (the first column). So the ${sz(850)} house has X = 0.85.</div>
         <div><b class="text-[color:var(--ink)]">miss × X</b> gives bigger houses more say in the slope.</div>
         <div class="border-t border-dashed border-[color:var(--rule)] pt-3">The <b class="cb">average miss</b> and the <b class="cm">average of miss × X</b> will help us adjust our line.</div>
       </div>
@@ -721,11 +736,9 @@ async function tbCalc(){ const F=S.f, D=gdData(S.first); F.calcBusy=true; $('tbC
   for(let i=0;i<5;i++){ const g=Math.round(guess(S.first,HOUSES[i].s)), p=HOUSES[i].p;
     await work(i,'cm'+i,['tL'+i,'tS'+i],`${g} − ${p}`,sgn(D.e[i]),D.e[i]>0?'#be123c':'#b45309'); }
   await sleep(300);
-  msg('<b>x</b> = the house size in 1,000s of sq ft');
-  for(let i=0;i<5;i++) await work(i,'cx'+i,['tH'+i],`${HOUSES[i].s.toLocaleString('en-US')} ÷ 1,000`,n2(D.x[i]));
   await sleep(300);
-  msg('<b>miss × X</b> = multiply the two');
-  for(let i=0;i<5;i++) await work(i,'cp'+i,['cm'+i,'cx'+i],`${sgn(D.e[i])} × ${n2(D.x[i])}`,n2(D.ex[i]));
+  msg('<b>miss × X</b> = the miss times the size X');
+  for(let i=0;i<5;i++) await work(i,'cp'+i,['cm'+i,'tH'+i],`${sgn(D.e[i])} × ${n2(D.x[i])}`,n2(D.ex[i]));
   await sleep(400);
   // averages: show the sum, then count up
   const avg=async(tdId,elId,list,val,fmt)=>{ $(tdId)?.classList.add('src'); const sum=list.reduce((a,b)=>a+b,0);
@@ -739,22 +752,23 @@ async function tbCalc(){ const F=S.f, D=gdData(S.first); F.calcBusy=true; $('tbC
 // chapter 5: plug the averages into the update rule
 P[4]={enter(){ const key=JSON.stringify(S.first); if(S.p.key!==key) S.p=freshP(key); S.fix=S.p.pushed?gdTarget(S.first):{...S.first}; }, html:()=>'', wire(){}, upd(){},
   done:()=>S.p.pushed, hint:'Plug in the numbers, then update the line'};
-function renderEq(L=S.fix,title='Your line is an equation',blank=false){ const T=tbFrom(L), q='?';
-  $('eqBar').innerHTML=`<div class="eqstrip"><span class="slabel" style="margin:0">${title} <span class="text-[color:var(--faint)]" style="text-transform:none;letter-spacing:0">· y = <span class="cm">m</span> × X + <span class="cb">b</span></span></span>
-    <span class="eqright"><span class="disp eqline">price = <span id="eqM" class="slot cm tabnum">${blank?q:f1s(T.m)}</span> × X + <span id="eqB" class="slot cb tabnum">${blank?q:f1s(T.b)}</span></span>
-      <span class="eqcap"><span class="cm">m</span> = slope ($k per 1,000 sq ft) &nbsp;·&nbsp; <span class="cb">b</span> = price at X = 0</span></span></div>`; }
+function renderEq(L=S.fix,title='',blank=false){ const T=tbFrom(L), q='?';
+  $('eqBar').innerHTML=`<div class="eqstrip" style="justify-content:flex-end">
+    <div class="eqbox"><div class="eqbox-h">Linear equation</div>
+      <div class="eqbox-row"><span class="cm">Variable 1</span><b id="eqM" class="slot cm tabnum">${blank?q:f1s(T.m)}</b></div>
+      <div class="eqbox-row"><span class="cb">Variable 2</span><b id="eqB" class="slot cb tabnum">${blank?q:f1s(T.b)}</b></div></div></div>`; }
 function renderPlug(){
   const P5=S.p, D=gdData(S.first), T=D.T, box=$('panel');
   const row=k=>{ const isM=k==='m', locked=isM?false:!P5.done.m, ok=P5.done[k];
-    return `<div class="plugrow"><span class="whitespace-nowrap"><span class="${isM?'cm':'cb'}">${k}</span> &larr; ${f1s(isM?T.m:T.b)} − 0.2 × (<span class="${isM?'cm':'cb'}">${n2(isM?D.aex:D.ae)}</span>) =</span>
-      <input id="pIn${k}" class="ans ${ok?'ok':''}" inputmode="decimal" autocomplete="off" value="${ok?f1s(isM?D.nm:D.nb):P5.val[k]}" aria-label="New ${k}" ${ok||locked||P5.pushed?'disabled':''}></div>
+    return `<div class="plugrow"><span class="whitespace-nowrap"><span class="${isM?'cm':'cb'}">${PN[k]}</span> &larr; ${f1s(isM?T.m:T.b)} − 0.2 × (<span class="${isM?'cm':'cb'}">${n2(isM?D.aex:D.ae)}</span>) =</span>
+      <input id="pIn${k}" class="ans ${ok?'ok':''}" inputmode="decimal" autocomplete="off" value="${ok?f1s(isM?D.nm:D.nb):P5.val[k]}" aria-label="New ${PN[k]}" ${ok||locked||P5.pushed?'disabled':''}></div>
       ${ok?'':`<div class="flex gap-2"><button class="btn btn-main btn-sm" id="pChk${k}" ${locked?'disabled':''}>Check</button><button class="btn btn-ghost btn-sm" id="pShw${k}" ${locked?'disabled':''}>Show me</button></div>`}
       <div class="text-[13px] font-bold min-h-[18px]" style="color:${ok?'#166534':'#9a3412'}">${P5.fb[k]}</div>`; };
   const both=P5.done.m&&P5.done.b;
-  box.innerHTML=`<div><div class="ptitle">Chapter 5</div><div class="phead">Fixing the line</div></div>
+  box.innerHTML=`<div><div class="ptitle">${eyebrow(4)}</div><div class="phead">Fixing the line</div></div>
     <p class="task">You know the direction (${(()=>{ const C=c5Data(S.first); return `${Math.abs(C.g0)<1?'no shift':C.g0>0?'shift down':'shift up'}, ${Math.abs(C.g1)<1?'same tilt':C.g1<0?'tilt steeper':'tilt flatter'}`; })()}). The update rule (gradient descent) works out <b>how far</b>, using the two averages from the table:</p>
     <div class="mathbox"><div class="slabel">The update rule</div>
-      <div class="font-extrabold leading-[2] tabnum"><div><span class="cm">m</span> &larr; m − α × average(miss × X)</div><div><span class="cb">b</span> &larr; b − α × average(miss)</div></div>
+      <div class="font-extrabold leading-[2] tabnum"><div><span class="cm">V1</span> &larr; V1 − α × average(miss × X)</div><div><span class="cb">V2</span> &larr; V2 − α × average(miss)</div></div>
       <div class="text-[12.5px] font-bold text-[color:var(--soft)] mt-1">α (step size) = 0.2</div></div>
     <div class="rounded-xl px-3 py-3 border-2 border-dashed flex flex-col gap-1.5 text-[15px] font-extrabold" style="border-color:#c7d2fe">
       <div class="slabel" style="color:var(--line)">Your turn: plug in the numbers</div>${row('m')}${row('b')}</div>
@@ -775,7 +789,7 @@ function plugCheck(k,shown){ const P5=S.p, D=gdData(S.first), target=k==='m'?D.n
     if(Math.abs(v-target)>0.15){ P5.tries[k]++; const prod=r2(-ALPHA*avg);
       P5.fb[k]=P5.tries[k]===1?`Not quite. First do 0.2 × (${n2(avg)}), then subtract that from ${f1s(old)}.`:`0.2 × (${n2(avg)}) = ${n2(-prod)}. Subtracting a minus adds it: ${f1s(old)} + ${n2(prod)} = ?`;
       update(); const el=$('pIn'+k); if(el){ el.classList.add('bad'); el.focus({preventScroll:true}); } return; } }
-  P5.done[k]=true; P5.fb[k]=`${shown?'':'Right! '}${k} goes from ${f1s(old)} to <b>${f1s(target)}</b>.`;
+  P5.done[k]=true; P5.fb[k]=`${shown?'':'Right! '}${PN[k]} goes from ${f1s(old)} to <b>${f1s(target)}</b>.`;
   update(); if(k==='m') $('pInb')?.focus({preventScroll:true}); }
 function anim(dur,fn){ return new Promise(res=>{ const t0=performance.now(); const st=t=>{ const k=clamp((t-t0)/dur,0,1), e=1-Math.pow(1-k,3); fn(e); if(k<1) requestAnimationFrame(st); else res(); }; requestAnimationFrame(st); }); }
 function flyNum(fromEl,toEl,text,color){ return new Promise(res=>{ if(!fromEl||!toEl){ res(); return; } const a=fromEl.getBoundingClientRect(), b=toEl.getBoundingClientRect();
@@ -785,12 +799,12 @@ function flyNum(fromEl,toEl,text,color){ return new Promise(res=>{ if(!fromEl||!
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.transform=`translate(${b.left-a.left}px,${b.top-a.top}px) scale(${ts/fs})`; el.style.opacity=0; }));
   setTimeout(()=>{ el.remove(); res(); },850); }); }
 async function plugRun(){ const P5=S.p; if(P5.busy) return; const D=gdData(S.first), T0=D.T, T1={m:D.nm,b:D.nb};
-  P5.busy=true; P5.msg='Putting the new <b class="cm">m</b> into the equation...'; update();
+  P5.busy=true; P5.msg='Putting the new <b class="cm">V1</b> into the equation...'; update();
   window.scrollTo({top:0,behavior:'smooth'}); await sleep(350);
   const setT=T=>{ S.fix=tbTo(T); renderChart(); if($('eqM')) $('eqM').textContent=f1s(T.m); if($('eqB')) $('eqB').textContent=f1s(T.b); };
   await flyNum($('pInm'),$('eqM'),f1s(T1.m),'#7c3aed'); $('eqM')?.classList.add('glow-m');
   await anim(1300,e=>setT({m:T0.m+(T1.m-T0.m)*e, b:T0.b})); await sleep(300); $('eqM')?.classList.remove('glow-m');
-  P5.msg='Now the new <b class="cb">b</b>...'; if($('panel').querySelector('p.text-\\[14px\\]')) $('panel').querySelector('p.text-\\[14px\\]').innerHTML=P5.msg;
+  P5.msg='Now the new <b class="cb">V2</b>...'; if($('panel').querySelector('p.text-\\[14px\\]')) $('panel').querySelector('p.text-\\[14px\\]').innerHTML=P5.msg;
   await flyNum($('pInb'),$('eqB'),f1s(T1.b),'#0891b2'); $('eqB')?.classList.add('glow-b');
   await anim(900,e=>setT({m:T1.m, b:T0.b+(T1.b-T0.b)*e})); await sleep(300); $('eqB')?.classList.remove('glow-b');
   P5.busy=false; P5.pushed=true; S.fix=gdTarget(S.first); update(); }
@@ -858,14 +872,14 @@ function renderC6Bar(){ const I=S.it, bar=$('c1Bar'), D=I.D;
   const dots=`<span class="hdots">${['pred','sold','miss','bad','much','fix'].map((p,j,arr)=>{ const at=arr.indexOf(ph); return `<i class="${I.phase==='done'||j<at?'on':j===at?'cur':''}"></i>`; }).join('')}</span>`;
   let msg='', btns='';
   const sq=D?D.e.map(v=>v*v):[], mse=sq.length?sq.reduce((a,b)=>a+b,0)/5:0;
-  if(I.phase==='intro') msg=`<b>Step ${I.step}.</b> Same steps as before, but now with the line <b>price = ${f1s(D.T.m)} × X + ${f1s(D.T.b)}</b>.`;
+  if(I.phase==='intro') msg=`<b>Step ${I.step}.</b> Same steps as before, but now with the line you just fixed: <b><span class="cm">V1 = ${f1s(D.T.m)}</span>, <span class="cb">V2 = ${f1s(D.T.b)}</span></b>.`;
   else if(I.phase==='pred') msg=`<b>1. Make predictions.</b> The line prices every house.`;
   else if(I.phase==='sold') msg=`<b>2. The sales come in.</b> Each house shows what it really sold for.`;
   else if(I.phase==='miss') msg=`<b>3. How far off?</b> Measure each miss: line minus sold price.`;
   else if(I.phase==='bad') msg=`<b>4. How bad is the line?</b> Square each miss and average: (${sq.map(fmtN).join(' + ')}) ÷ 5 = <b>${fmtN(mse)}</b>.`;
-  else if(I.phase==='much') msg=`<b>5. How much to change?</b> Average the misses:<br><span class="cm">for m: average of miss × X = <span id="rAex" class="tabnum">0</span></span><br><span class="cb">for b: average miss = <span id="rAe" class="tabnum">0</span></span>`;
+  else if(I.phase==='much') msg=`<b>5. How much to change?</b> Average the misses:<br><span class="cm">for V1: average of miss × X = <span id="rAex" class="tabnum">0</span></span><br><span class="cb">for V2: average miss = <span id="rAe" class="tabnum">0</span></span>`;
   else if(['apply','applyM','applyB'].includes(I.phase)){ const on=k=>I.phase==='apply'||I.phase==='apply'+k?'':'opacity:.4';
-    const note=I.phase==='applyM'?' Applying the new <b class="cm">m</b>: the line tilts.':I.phase==='applyB'?' Applying the new <b class="cb">b</b>: the line shifts.':' Work out both new numbers:';
+    const note=I.phase==='applyM'?' Applying the new <b class="cm">V1</b>: the line tilts.':I.phase==='applyB'?' Applying the new <b class="cb">V2</b>: the line shifts.':' Work out both new numbers:';
     msg=`<b>6. Fix the line.</b>${note}<br><span class="cm" style="${on('M')}">m ← ${f1s(D.T.m)} − 0.2 × (${n2(D.aex)}) = <b id="rNm">${f1s(D.nm)}</b></span><br><span class="cb" style="${on('B')}">b ← ${f1s(D.T.b)} − 0.2 × (${n2(D.ae)}) = <b id="rNb">${f1s(D.nb)}</b></span>`; }
   else if(I.phase==='done'){ msg='That\'s the whole loop: predict, compare, measure, score, work out the change, fix the line. Each time around, the line gets a little closer. You can repeat it as many times as you like.';
     btns=`<button class="btn btn-ghost btn-sm" id="c6Replay">Replay</button><button class="btn btn-main" id="c6Next">Next: simulate it &rarr;</button>`; }
@@ -882,7 +896,7 @@ function renderSimBar(){ const I=S.it, bar=$('c1Bar'), best=tbFrom(BEST), last=I
   let verdict='Start from your first line. Pick a step size and how many times to repeat, then press Simulate.';
   if(I.simBusy) verdict=`Repeating... step ${I.steps} of ${I.n}`;
   else if(I.simDone){ if(I.diverged) verdict=`<b style="color:var(--hi)">Step size too big.</b> Each step overshoots more than the last, and the line flies off.`;
-    else if(last<BESTBAD*1.02) verdict=`<b style="color:#166534">Settled.</b> After ${I.steps} steps the line has landed on the best fit: price = ${f1s(best.m)} × X + ${f1s(best.b)}.`;
+    else if(last<BESTBAD*1.02) verdict=`<b style="color:#166534">Settled.</b> After ${I.steps} steps the line has landed on the best fit: V1 = ${f1s(best.m)}, V2 = ${f1s(best.b)}.`;
     else if(I.alpha<=0.1) verdict=`<b>Small steps:</b> steady, but slow. After ${I.steps} steps it's still getting there. Try more steps or a bigger step size.`;
     else verdict=`<b>Getting closer.</b> After ${I.steps} steps it's not quite there yet. Repeat more times to finish.`; }
   bar.innerHTML=`<div class="w-full flex flex-col gap-3">
@@ -922,19 +936,18 @@ async function runSim(){ const I=S.it, tok=++I.tok; I.simBusy=true; I.simDone=fa
 const LEARNED=()=>tbFrom(BEST);
 P[7]={enter(){ if(S.n8>2) S.n8=0; }, html:()=>'', wire(){}, upd(){}, done:()=>false, hint:'The end. Nice work!'};
 function n8Prices(){ const T=LEARNED(), x=S.newSize/1000, mR=r1(T.m), bR=r1(T.b); return {T, x, mR, bR, best:T.m*x+T.b, ans:mR*x+bR}; }
+const n8SizeTxt=()=>sz(S.newSize);
 function n8Refresh(){ const P8=n8Prices(); renderChart();
   if($('n8Pic')) $('n8Pic').innerHTML=houseSVG(-1,S.newSize,'sale');
-  if($('n8Size')) $('n8Size').textContent=S.newSize.toLocaleString('en-US')+' sq ft';
+  if($('n8Size')) $('n8Size').textContent=n8SizeTxt();
   if($('n8Best')) $('n8Best').textContent=S.n8>=2?fmtK(P8.ans):'?';
   if($('n8Calc')) $('n8Calc').innerHTML=n8CalcText(P8); }
 function n8CalcText(P8){ return `price = <span class="cm">${f1s(P8.mR)}</span> × <b>${n2(P8.x)}</b> + <span class="cb">${f1s(P8.bR)}</span> = <b style="color:var(--line)">${fmtK(P8.ans)}</b>`; }
-// the house size flies into x, turns into thousands, then flies into the equation
+// the size X flies from the card into the equation
 async function n8XAnim(){ const P8=n8Prices(), xs=n2(P8.x), alive=()=>S.ch===7&&S.n8===1;
   await sleep(450); if(!alive()) return;
-  await flyNum($('n8Size'),$('n8X'),`${S.newSize.toLocaleString('en-US')} sq ft`,'#1e2433'); if(!alive()) return;
-  const xEl=$('n8X'); if(xEl){ xEl.className='xslot working'; xEl.textContent=`${S.newSize.toLocaleString('en-US')} ÷ 1,000`; }
-  await sleep(900); if(!alive()) return;
-  if(xEl){ xEl.className='xslot popnum'; xEl.textContent=xs; }
+  await flyNum($('n8Size'),$('n8X'),xs,'#1e2433'); if(!alive()) return;
+  const xEl=$('n8X'); if(xEl){ xEl.className='xslot popnum'; xEl.textContent=xs; }
   await sleep(600); if(!alive()) return;
   await flyNum($('n8X'),$('n8Xeq'),xs,'#1e2433'); if(!alive()) return;
   const eqEl=$('n8Xeq'); if(eqEl){ eqEl.className='xslot popnum'; eqEl.textContent=xs; }
@@ -951,7 +964,7 @@ function renderC8Bar(){ const bar=$('c1Bar'), st=S.n8, P8=n8Prices();
       <button class="btn btn-main" id="n8Next0">Next: price it &rarr;</button>`;
     $('n8Next0').onclick=()=>{ S.n8=1; S.n8x=false; update(); n8XAnim(); }; return; }
   if(st===1){ bar.innerHTML=`<div class="flex flex-col gap-2 min-w-0 flex-1"><span class="slabel" style="margin:0">Step 2 of 2 · Plug it into your line</span>
-      <span class="text-[14.5px] font-bold">The house is ${S.newSize.toLocaleString('en-US')} sq ft, so <b>X = <span id="n8X" class="xslot">${S.n8x?n2(P8.x):'?'}</span></b> (thousands of sq ft). Use your final line to price it:</span>
+      <span class="text-[14.5px] font-bold">The house is <b>X = <span id="n8X" class="xslot">${S.n8x?n2(P8.x):'?'}</span></b> thousand sq ft. Use your final line to price it:</span>
       <span class="flex items-center gap-2 flex-wrap text-[17px] font-extrabold tabnum">price = <span class="cm">${f1s(P8.mR)}</span> × <span id="n8Xeq" class="xslot">${S.n8x?n2(P8.x):'?'}</span> + <span class="cb">${f1s(P8.bR)}</span> =
         <label class="ansbox ${S.n8tries&&S.n8hint?'shake':''}"><span>$</span><input id="n8In" style="width:72px" inputmode="decimal" autocomplete="off" value="${S.n8v}" aria-label="Predicted price, in thousands"><span>k</span></label>
         <button class="btn btn-main btn-sm" id="n8Chk">Check</button><button class="btn btn-ghost btn-sm" id="n8Shw">Show me</button></span>
@@ -974,18 +987,18 @@ function renderFlash(){
   const C=S.c1, k=C.i, hi=FLASH[k], h=HOUSES[hi];
   $('flashStage').innerHTML=`<div class="card-w p-4 lg:p-6 flex flex-col gap-4 fade-in max-w-[560px] mx-auto w-full">
     ${k===0?'<p class="text-[15px] font-bold">Buyers want to know what these houses are worth. Start with two of them.</p>':''}
-    <div class="flex items-baseline justify-between gap-2"><div><div class="ptitle">Chapter 1 · House ${k+1} of 2</div><div class="phead">${k===0?'The smallest house':'The biggest house'}</div></div>
+    <div class="flex items-baseline justify-between gap-2"><div><div class="ptitle">Chapter 1 &middot; Predict &middot; House ${k+1} of 2</div><div class="phead">${k===0?'The smallest house':'The biggest house'}</div></div>
       <div class="flex gap-1.5" aria-hidden="true">${FLASH.map((_,j)=>`<i style="width:9px;height:9px;border-radius:50%;display:inline-block;background:${j<=k?'var(--line)':'var(--rule)'}"></i>`).join('')}</div></div>
     <div class="flash popin">
       <div class="flash-house">${houseSVG(hi,h.s,'sale')}</div>
-      <div class="text-center text-[15px] font-extrabold">${h.s.toLocaleString('en-US')} sq ft</div>
+      <div class="text-center text-[15px] font-extrabold">${sz(h.s)}</div>
       <div class="text-center text-[13.5px] font-bold text-[color:var(--soft)]">What do you think it sold for?</div>
       <div class="text-center flash-price tabnum" id="flashVal">${C.val[k]==null?'<span style="color:var(--faint)">Pick a price</span>':fmtK(C.val[k])}</div>
       <div class="flex items-center gap-2"><button class="mini" data-fd="-10" aria-label="Lower guess">−</button>
-        <input type="range" min="0" max="700" step="5" value="${C.val[k]??0}" id="flashRange" class="range range-sm flex-1" aria-label="Your price guess for the ${h.s.toLocaleString('en-US')} sq ft house">
+        <input type="range" min="0" max="700" step="5" value="${C.val[k]??0}" id="flashRange" class="range range-sm flex-1" aria-label="Your price guess for the ${sz(h.s)} house">
         <button class="mini" data-fd="10" aria-label="Raise guess">+</button></div>
     </div>
-    ${k===1?`<div class="text-[13px] font-bold text-[color:var(--soft)]">Your first guess: ${fmtK(C.g[0])} for the ${HOUSES[FLASH[0]].s.toLocaleString('en-US')} sq ft house.</div>`:''}
+    ${k===1?`<div class="text-[13px] font-bold text-[color:var(--soft)]">Your first guess: ${fmtK(C.g[0])} for the ${sz(HOUSES[FLASH[0]].s)} house.</div>`:''}
     <div class="flex flex-wrap items-center justify-between gap-3">
       <p class="text-[13px] font-bold text-[color:var(--faint)]">No wrong answers yet. Go with your gut.</p>
       <button class="btn btn-main" id="lockGuess" ${C.val[k]==null?'disabled':''}>${k===0?'Lock in my guess':'Lock in and plot my guesses'}</button>
@@ -1038,7 +1051,7 @@ async function predictNext(){
     if(S.ch!==0||S.c1!==C) return;
     await flyTo(hi,guess(S.first,HOUSES[hi].s)); if(S.ch!==0||S.c1!==C) return;
     C.placed=hi; C.landed=hi;
-    say(`The ${HOUSES[hi].s.toLocaleString('en-US')} sq ft house: go up from its size to your line, and it says <b>${fmtK(guess(S.first,HOUSES[hi].s))}</b>.`);
+    say(`The ${sz(HOUSES[hi].s)} house: go up from its size to your line, and it says <b>${fmtK(guess(S.first,HOUSES[hi].s))}</b>.`);
     update(); C.landed=-1; await sleep(350);
   }
   C.flying=false; redrawC1();
@@ -1079,7 +1092,9 @@ async function revealSales(){
 }
 
 /* ---------- navigation ---------- */
-function renderProg(){ $('prog').innerHTML=CH.map((c,i)=>`<button class="pstep ${i<S.ch?'done':''} ${i===S.ch?'cur':''}" data-c="${i}" aria-label="Chapter ${i+1}: ${c.t}"><span class="pbar"><i></i></span><span class="plabel"><span class="lg:hidden">${i===S.ch?`${i+1}. ${c.s}`:i+1}</span><span class="hidden lg:inline">${i+1}. ${c.t}</span></span></button>`).join('');
+function renderProg(){ const cur=chapOf(S.ch);
+  $('prog').innerHTML=CH5.map((c,i)=>{
+    return `<button class="pstep ${i<cur?'done':''} ${i===cur?'cur':''}" data-c="${c.steps[0]}" aria-label="Chapter ${i+1}: ${c.t}"><span class="pbar"><i></i></span><span class="plabel"><span class="lg:hidden">${i===cur?`${i+1}. ${c.s}`:i+1}</span><span class="hidden lg:inline">${i+1}. ${c.t}</span></span></button>`; }).join('');
   $('prog').querySelectorAll('.pstep').forEach(b=>b.onclick=()=>go(+b.dataset.c)); }
 function fillUpTo(c){
   if(c>=1&&!(S.c1.line&&S.c1.placed>=3)){ S.c1={...freshC1(), i:2, g:[250,450], val:[250,450], line:true, placed:3, gLanded:2}; S.first=fromTags(250,450); }
@@ -1089,15 +1104,15 @@ function fillUpTo(c){
   if(c>=4&&(!S.f.tab||S.f.key!==key)){ S.f={...freshF(key),part:2,step:2,q:[qRight(0,S.first),qRight(1,S.first)],tab:true}; }
   if(c>=6&&(!S.it.demoDone||S.it.key!==key)){ S.it={...freshIt(key),L:gdTarget(S.first),demoDone:true,phase:'done',vis:{pred:[1,1,1,1,1],sold:[1,1,1,1,1],miss:[1,1,1,1,1],cPred:[1,1,1,1,1],cSold:[1,1,1,1,1],cMiss:[1,1,1,1,1]}}; S.it.D=gdData(S.it.L); }
   if(c>=7&&!S.it.simDone){ S.it.simDone=true; S.it.simL={...S.first}; S.it.hist=[badness(S.first)]; }
-  if(c>=5&&(!S.p.pushed||S.p.key!==key)){ const D=gdData(S.first); S.p={...freshP(key),done:{m:true,b:true},pushed:true,fb:{m:`m goes from ${f1s(D.T.m)} to <b>${f1s(D.nm)}</b>.`,b:`b goes from ${f1s(D.T.b)} to <b>${f1s(D.nb)}</b>.`}}; }
+  if(c>=5&&(!S.p.pushed||S.p.key!==key)){ const D=gdData(S.first); S.p={...freshP(key),done:{m:true,b:true},pushed:true,fb:{m:`V1 goes from ${f1s(D.T.m)} to <b>${f1s(D.nm)}</b>.`,b:`V2 goes from ${f1s(D.T.b)} to <b>${f1s(D.nb)}</b>.`}}; }
 }
 function go(c){ fillUpTo(c); stopPlay(); S.ghost=null; S.ch=c; S.maxCh=Math.max(S.maxCh,c); P[c].enter(); $('panel').innerHTML=P[c].html(); P[c].wire(); update(); renderProg();
   const titles=['The neighborhood','The sales','How far off?','Your misses','Your misses','Running every step again','Your line as it learns','The new listing'];
   const hints=['Guess two, and your line prices the rest','Each house moves to the price it really sold for','How far each sale is from your line','Each miss, squared','','The line fills in as each step runs','Updates on every step','Set its size'];
-  $('cardsTitle').textContent=titles[c]; $('cardsHint').textContent=hints[c]; $('chapChip').textContent=`Chapter ${c+1} of 8`; }
+  $('cardsTitle').textContent=titles[c]; $('cardsHint').textContent=hints[c]; $('chapChip').textContent=`Chapter ${chapOf(c)+1} of 5`; }
 $('backBtn').onclick=()=>{ if(S.ch>0) go(S.ch-1); };
 $('nextBtn').onclick=()=>{ if(S.ch<7&&P[S.ch].done()){ go(S.ch+1); window.scrollTo({top:0,behavior:'smooth'}); } };
-function update(){ const fm=S.ch===0&&S.c1.i<2; document.body.classList.toggle('nomentor',true); document.body.classList.toggle('wide',(S.ch===0&&!fm)||S.ch===1||S.ch>=5); document.body.classList.toggle('sim',false); document.body.classList.toggle('showeq',(S.ch===0&&!fm)||S.ch>=4); document.body.classList.toggle('replay',S.ch===5); document.body.classList.toggle('nocalc',S.ch===7&&S.n8>=2); document.body.classList.toggle('c5',S.ch===3&&S.f.part===1); document.body.classList.toggle('c6',S.ch===4); document.body.classList.toggle('nochart',S.ch===2||(S.ch===3&&S.f.part===2)); const was=document.body.classList.contains('flashmode'); document.body.classList.toggle('flashmode',fm); if(fm&&(!was||!$('lockGuess'))) renderFlash();
+function update(){ if($('partBar')) $('partBar').innerHTML=`${eyebrow(S.ch)} &middot; <span style="color:var(--soft)">${CH[S.ch].t}</span>`; const fm=S.ch===0&&S.c1.i<2; document.body.classList.toggle('nomentor',true); document.body.classList.toggle('wide',(S.ch===0&&!fm)||S.ch===1||S.ch>=5); document.body.classList.toggle('sim',false); document.body.classList.toggle('showeq',(S.ch===0&&!fm)||S.ch>=4); document.body.classList.toggle('replay',S.ch===5); document.body.classList.toggle('nocalc',S.ch===7&&S.n8>=2); document.body.classList.toggle('c5',S.ch===3&&S.f.part===1); document.body.classList.toggle('c6',S.ch===4); document.body.classList.toggle('nochart',S.ch===2||(S.ch===3&&S.f.part===2)); const was=document.body.classList.contains('flashmode'); document.body.classList.toggle('flashmode',fm); if(fm&&(!was||!$('lockGuess'))) renderFlash();
   renderChart(); if(S.ch===0&&!fm){ renderEq(S.first,'Your pricing line equation',!S.c1.line); renderC1Bar(); } else if(S.ch===1) renderC2Bar(); else if(S.ch===2) renderScore(); else if(S.ch===3){ if(S.f.part===1) renderC5Bar(); else renderTable(); } else if(S.ch===4){ renderEq(); renderPlug(); } else if(S.ch===5){ renderEq(S.it.L||S.first,'Run back all the steps you did, on the new line you found'); renderC6Bar(); } else if(S.ch===6){ renderEq(simL(),'Simulate: repeat the loop many times'); renderSimBar(); } else if(S.ch===7){ renderEq(BEST,'Your final line'); renderC8Bar(); } $('cards').innerHTML=cardsFor(); if(S.ch===7&&$('n8SizeR')) $('n8SizeR').oninput=e=>{ S.newSize=+e.target.value; n8Refresh(); }; P[S.ch].upd();
   const d=P[S.ch].done(); const nb=$('nextBtn'); nb.disabled=S.ch===7||!d; nb.style.display=S.ch===7?'none':'';
   $('hintline').textContent=S.ch===7?P[7].hint:d?'':P[S.ch].hint; $('backBtn').disabled=S.ch===0;
