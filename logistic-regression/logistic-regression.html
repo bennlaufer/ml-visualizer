@@ -787,7 +787,7 @@ async function runDemo(){ const I=S.it, tok=++I.tok, alive=()=>tok===I.tok&&S.ch
       if(kind==='pred') return flyFromChart(h.v,p,10,$('rLine'+i),n2(r2(p)),'#4f46e5');
       if(kind==='res') return flyFromChart(h.v,h.y,-6,$('rRes'+i),String(h.y),h.y?'#166534':'#9a3412');
       const e=missOf(L,i); return flyFromChart(h.v,(p+h.y)/2,-36,$('rMiss'+i),n2(Math.abs(e)),e>0?'#be123c':'#b45309'); })); };
-  for(let k=0;k<2;k++){ const sp=k===0?1:0.7;
+  for(let k=0;k<1;k++){ const sp=1;
     I.step=k+2; I.vis=freshVis(); I.pop=null; I.D=gdData(I.L); I.cardL={...I.L};
     I.phase='intro'; update(); if(!await pause(2400*sp)) return;
     I.phase='pred'; for(let i=0;i<N;i++){ I.vis.pred[i]=1; I.pop={t:'pred',i}; update(); if(!await pause(550*sp)) return; }
@@ -818,19 +818,19 @@ function renderC6Bar(){ const I=S.it, bar=$('c1Bar'), D=I.D;
   const dots=`<span class="hdots">${['pred','res','miss','bad','much','fix'].map((p,j,arr)=>{ const at=arr.indexOf(ph); return `<i class="${I.phase==='done'||j<at?'on':j===at?'cur':''}"></i>`; }).join('')}</span>`;
   let msg='', btns='';
   const ms=D?D.rows.map(r=>Math.abs(r.e)):[], am=ms.length?r2(mean(ms)):0;
-  if(I.phase==='intro') msg=`<b>Step ${I.step}.</b> Same steps as before, but now with the curve you just fixed: <b><span class="cm">V1 = ${n2(D.m0)}</span>, <span class="cb">V2 = ${n2(D.b0)}</span></b>.`;
+  if(I.phase==='intro') msg=`Same steps as before, but now with the curve you just fixed: <b><span class="cm">Variable 1 = ${n2(D.m0)}</span>, <span class="cb">Variable 2 = ${n2(D.b0)}</span></b>.`;
   else if(I.phase==='pred') msg=`<b>1. Make predictions.</b> The curve gives every house a chance.`;
   else if(I.phase==='res') msg=`<b>2. The results come in.</b> Each ring shows what really happened: 1 or 0.`;
   else if(I.phase==='miss') msg=`<b>3. How far off?</b> Measure each miss: chance minus result.`;
   else if(I.phase==='bad') msg=`<b>4. How wrong is the curve?</b> Average the misses: (${ms.map(n2).join(' + ')}) ÷ 5 = <b>${n2(am)}</b>.`;
-  else if(I.phase==='much') msg=`<b>5. How much to change?</b> The two averages:<br><span class="cm">for V1: average of miss × X = <span id="rAex" class="tabnum">0.00</span></span><br><span class="cb">for V2: average miss = <span id="rAe" class="tabnum">0.00</span></span>`;
+  else if(I.phase==='much') msg=`<b>5. How much to change?</b> The two averages:<br><span class="cm">for Variable 1: average of miss × X = <span id="rAex" class="tabnum">0.00</span></span><br><span class="cb">for Variable 2: average miss = <span id="rAe" class="tabnum">0.00</span></span>`;
   else if(['apply','applyM','applyB'].includes(I.phase)){ const on=k=>I.phase==='apply'||I.phase==='apply'+k?'':'opacity:.4';
-    const note=I.phase==='applyM'?' Applying the new <b class="cm">V1</b>: the curve gets steeper or flatter.':I.phase==='applyB'?' Applying the new <b class="cb">V2</b>: the curve shifts.':' Work out both new numbers:';
-    msg=`<b>6. Fix the curve.</b>${note}<br><span class="cm" style="${on('M')}">V1 ← ${n2(D.m0)} − ${STEP.m} × (${n2(D.aex)}) = <b id="rNm">${n2(D.nm)}</b></span><br><span class="cb" style="${on('B')}">V2 ← ${n2(D.b0)} − ${STEP.b} × (${n2(D.ae)}) = <b id="rNb">${n2(D.nb)}</b></span>`; }
+    const note=I.phase==='applyM'?' Applying the new <b class="cm">Variable 1</b>: the curve gets steeper or flatter.':I.phase==='applyB'?' Applying the new <b class="cb">Variable 2</b>: the curve shifts.':' Work out both new numbers:';
+    msg=`<b>6. Fix the curve.</b>${note}<br><span class="cm" style="${on('M')}">Variable 1 ← ${n2(D.m0)} − ${STEP.m} × (${n2(D.aex)}) = <b id="rNm">${n2(D.nm)}</b></span><br><span class="cb" style="${on('B')}">Variable 2 ← ${n2(D.b0)} − ${STEP.b} × (${n2(D.ae)}) = <b id="rNb">${n2(D.nb)}</b></span>`; }
   else if(I.phase==='done'){ msg='That&rsquo;s the whole loop: predict, compare, measure, score, work out the change, fix the curve. Each time around, the curve gets a little closer. You can repeat it as many times as you like.';
     btns=`<button class="btn btn-ghost btn-sm" id="c6Replay">Replay</button><button class="btn btn-main" id="c6Next">Next: simulate it &rarr;</button>`; }
   else msg='Getting ready...';
-  bar.innerHTML=`<div class="flex flex-col gap-1.5 min-w-0 flex-1"><div class="flex items-center gap-3"><span class="slabel" style="margin:0">${I.phase==='done'?'All steps done':`Step ${I.step} of 3`}</span>${dots}</div><span class="text-[14.5px] font-bold">${msg}</span></div><span class="flex gap-2">${btns}</span>`;
+  bar.innerHTML=`<div class="flex flex-col gap-1.5 min-w-0 flex-1"><div class="flex items-center gap-3">${dots}</div><span class="text-[14.5px] font-bold">${msg}</span></div><span class="flex gap-2">${btns}</span>`;
   if($('c6Replay')) $('c6Replay').onclick=()=>{ I.phase=''; runDemo(); };
   if($('c6Next')) $('c6Next').onclick=()=>{ go(6); window.scrollTo({top:0,behavior:'smooth'}); };
 }
