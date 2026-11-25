@@ -650,7 +650,7 @@
     window.scrollTo({top:0});
   }
   $('nav-back').onclick=()=>go(cur-1);
-  $('nav-next').onclick=()=>{ if(cur===N-1) location.href='linear-regression.html'; else go(cur+1); };
+  $('nav-next').onclick=()=>{ if(cur===N-1) location.href='../linear-regression/linear-regression.html'; else go(cur+1); };
   document.querySelectorAll('.pstep').forEach(el=>el.onclick=()=>go(+el.dataset.i));
   document.addEventListener('keydown',e=>{ if(e.target.closest&&e.target.closest('button')&&e.key!=='ArrowLeft'&&e.key!=='ArrowRight') return; if(e.key==='ArrowRight') go(cur+1); else if(e.key==='ArrowLeft') go(cur-1); });
   go(0);
